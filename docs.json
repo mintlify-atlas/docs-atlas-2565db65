@@ -91,9 +91,12 @@
               "components/charts/line-chart",
               "components/charts/bar-chart",
               "components/charts/boolean-chart",
+              "components/charts/multiple-boolean",
               "components/charts/pie-chart",
               "components/charts/gauge",
-              "components/charts/liquid-fill"
+              "components/charts/circle-percentage",
+              "components/charts/liquid-fill",
+              "components/charts/pump-control"
             ]
           },
           {

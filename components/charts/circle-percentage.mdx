@@ -1,0 +1,186 @@
+---
+title: Circle percentage chart
+description: Circular gauge displaying percentage values with gradient fill
+icon: circle-notch
+---
+
+The **CirclePorcentaje** component renders a circular percentage gauge with a gradient progress indicator. It's ideal for displaying completion rates, capacity levels, or any metric expressed as a percentage of a maximum value.
+
+## Overview
+
+CirclePorcentaje uses ECharts to render a circular gauge that shows the percentage of a current value relative to a maximum value. The component features:
+
+- **Circular progress indicator** with gradient colors
+- **Center text display** showing percentage or "Sin datos" (No data)
+- **Automatic percentage calculation** from value and maxValue
+- **Visual feedback** with different colors for data/no-data states
+- **Shadow effects** for depth perception
+
+## Props
+
+<ParamField path="value" type="number" default="0">
+  Current value of the metric being measured
+</ParamField>
+
+<ParamField path="maxValue" type="number" default="100">
+  Maximum value for percentage calculation
+</ParamField>
+
+<ParamField path="color" type="string" default="#00FF00">
+  Primary color for the progress indicator gradient. The component creates a three-color gradient using this as the midpoint.
+</ParamField>
+
+## Usage Example
+
+```jsx
+import CirclePorcentaje from './components/Charts/CirclePorcentaje'
+
+// Display tank level at 75%
+<CirclePorcentaje 
+  value={75} 
+  maxValue={100} 
+  color="#00ff00" 
+/>
+
+// Display flow rate as percentage
+<CirclePorcentaje 
+  value={450} 
+  maxValue={600} 
+  color="#3b82f6" 
+/>
+
+// With no data
+<CirclePorcentaje 
+  value={null} 
+  maxValue={100} 
+  color="#00ff00" 
+/>
+```
+
+## Visual Design
+
+### Gradient Progress
+
+The progress indicator uses a three-stop linear gradient:
+
+```javascript
+colorStops: [
+  { offset: 0, color: '#bbf7d0' },    // Light green
+  { offset: 0.5, color },              // Your custom color
+  { offset: 1, color: '#064e3b' },     // Dark green
+]
+```
+
+### Ring Properties
+
+- **Progress width**: 24px rounded cap
+- **Background ring**: Same width with shadow effect
+- **Start angle**: 90° (top)
+- **End angle**: -270° (full circle)
+- **Radius**: 90% of container
+
+### States
+
+| State | Progress Color | Text | Center Text Color |
+|-------|----------------|------|-------------------|
+| Has Value | Gradient (light → custom → dark) | `{percentage} %` | `#0f2a44` |
+| No Data | `#cbd5e1` (gray) | `Sin datos` | `#0f2a44` |
+
+## Percentage Calculation
+
+The component automatically calculates percentage with 2 decimal precision:
+
+```javascript
+const percentage = ((value / maxValue) * 100).toFixed(2)
+```
+
+**Validation**:
+- Checks if value and maxValue are valid numbers
+- Returns 0% if either value is null, undefined, empty string, or NaN
+- Prevents division by zero (defaults maxValue to 1 if invalid)
+
+## Real-World Use Cases
+
+<Tabs>
+  <Tab title="Tank Capacity">
+    Display water tank fill level as a percentage:
+    
+    ```jsx
+    <CirclePorcentaje 
+      value={currentLevel}  // e.g., 850 liters
+      maxValue={tankCapacity}  // e.g., 1000 liters
+      color="#0ea5e9"  // Sky blue
+    />
+    ```
+  </Tab>
+  
+  <Tab title="System Load">
+    Show pump or system load percentage:
+    
+    ```jsx
+    <CirclePorcentaje 
+      value={currentLoad}  // e.g., 82 kW
+      maxValue={maxLoad}  // e.g., 100 kW
+      color="#f59e0b"  // Amber for warning
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Treatment Progress">
+    Display water treatment cycle completion:
+    
+    ```jsx
+    <CirclePorcentaje 
+      value={elapsedTime}  // e.g., 45 minutes
+      maxValue={totalCycleTime}  // e.g., 60 minutes
+      color="#10b981"  // Green
+    />
+    ```
+  </Tab>
+</Tabs>
+
+## Integration with Dashboard
+
+The component is registered in the Home dashboard as `CirclePorcentaje` and automatically receives real-time data updates every 30 seconds through the InfluxDB integration:
+
+```jsx
+// From ~/workspace/source/src/modules/home/views/index.jsx:17-26
+const chartComponents = {
+    LiquidFillPorcentaje,
+    CirclePorcentaje,  // ← Available in dashboard
+    BarDataSet,
+    PieChart: DoughnutChart,
+    PumpControl,
+    GaugeSpeed,
+    BooleanChart,
+    MultipleBooleanChart
+}
+```
+
+## Differences from Other Gauges
+
+| Feature | CirclePorcentaje | GaugeSpeed | LiquidFillPorcentaje |
+|---------|------------------|------------|----------------------|
+| Shape | Full circle (360°) | Semi-circle (180°) | Container shapes |
+| Animation | None | Needle movement | Wave motion |
+| Display | Percentage only | Value + unit | Percentage with waves |
+| Best For | Completion rates | Speed/pressure | Tank levels |
+
+## Accessibility
+
+- **Text alternative**: Center text shows percentage or "Sin datos"
+- **Color independence**: Gray state for no data is distinguishable
+- **Contrast**: Dark text on light background for readability
+
+## Performance
+
+- Lightweight ECharts gauge configuration
+- No animations (instant updates)
+- Suitable for multiple instances on a single dashboard
+- Efficient percentage recalculation
+
+## Related Components
+
+- [Gauge](/components/charts/gauge) - Speedometer-style gauge with needle
+- [Liquid Fill](/components/charts/liquid-fill) - Animated tank level indicator
+- [Boolean Chart](/components/charts/boolean-chart) - LED-style on/off indicators

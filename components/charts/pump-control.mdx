@@ -1,0 +1,380 @@
+---
+title: Pump control chart
+description: Specialized dashboard component for monitoring pumps and system states
+icon: pump
+---
+
+The **PumpControl** component is a specialized monitoring panel designed specifically for water treatment plant pump stations. It displays pump status, system states, and operational metrics with dedicated sections for different equipment types.
+
+## Overview
+
+PumpControl provides a comprehensive view of pump station operations with:
+
+- **Pump monitoring section** - Track individual pump status and runtime
+- **System state indicators** - Monitor valves, levels, and other binary states
+- **Real-time data integration** - Automatic updates from InfluxDB variables
+- **Configurable layout** - Add/remove pumps and states dynamically
+- **Visual status indication** - Color-coded states for quick assessment
+
+This component combines elements of boolean indicators, numeric displays, and timing information in a specialized layout optimized for pump station operators.
+
+## Props
+
+<ParamField path="edit" type="boolean" default="true">
+  Enables edit mode for configuration. Set to `false` for display-only mode on the dashboard.
+</ParamField>
+
+<ParamField path="initialPumps" type="array" default="[]">
+  Array of pump configurations. Each pump object should contain:
+  
+  <Expandable title="Pump object properties">
+    <ResponseField name="id" type="number" required>
+      Unique identifier for the pump
+    </ResponseField>
+    
+    <ResponseField name="name" type="string" required>
+      Display name (e.g., "Pump 1", "Backup Pump")
+    </ResponseField>
+    
+    <ResponseField name="varId" type="number" required>
+      InfluxDB variable ID for pump status
+    </ResponseField>
+    
+    <ResponseField name="value" type="any">
+      Current value from InfluxDB (updated automatically)
+    </ResponseField>
+    
+    <ResponseField name="unit" type="string">
+      Unit of measurement (if applicable)
+    </ResponseField>
+    
+    <ResponseField name="type" type="string">
+      Always set to "pump"
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="initialStates" type="array" default="[]">
+  Array of system state configurations (valves, sensors, etc.)
+  
+  <Expandable title="State object properties">
+    <ResponseField name="id" type="number" required>
+      Unique identifier for the state
+    </ResponseField>
+    
+    <ResponseField name="name" type="string" required>
+      Display name (e.g., "Inlet Valve", "High Level Alarm")
+    </ResponseField>
+    
+    <ResponseField name="varId" type="number" required>
+      InfluxDB variable ID for state value
+    </ResponseField>
+    
+    <ResponseField name="value" type="any">
+      Current value from InfluxDB (updated automatically)
+    </ResponseField>
+    
+    <ResponseField name="unit" type="string">
+      Unit of measurement (if applicable)
+    </ResponseField>
+    
+    <ResponseField name="type" type="string">
+      Always set to "status"
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="initialTitle" type="string" default="">
+  Title displayed at the top of the pump control panel
+</ParamField>
+
+## Configuration Mode
+
+When `edit={true}`, the component provides a configuration interface:
+
+### Adding Pumps
+
+<Steps>
+  <Step title="Click Add Pump">
+    Opens a dialog for configuring a new pump
+  </Step>
+  
+  <Step title="Enter pump details">
+    - **Name**: Descriptive name for the pump
+    - **Variable**: Select the InfluxDB variable to monitor
+  </Step>
+  
+  <Step title="Save configuration">
+    Pump is added to the monitoring panel
+  </Step>
+</Steps>
+
+### Adding States
+
+<Steps>
+  <Step title="Click Add State">
+    Opens a dialog for configuring a system state indicator
+  </Step>
+  
+  <Step title="Enter state details">
+    - **Name**: Descriptive name (e.g., "Inlet Valve Open")
+    - **Variable**: Select the boolean InfluxDB variable
+  </Step>
+  
+  <Step title="Save configuration">
+    State indicator is added to the panel
+  </Step>
+</Steps>
+
+### Saving to Backend
+
+The configuration is saved via the API:
+
+```javascript
+// From ~/workspace/source/src/modules/Charts/views/ConfigBombs.jsx:99
+const url = `${backend[import.meta.env.VITE_APP_NAME]}/bombs`
+```
+
+Request body structure:
+```json
+{
+  "title": "Main Pump Station",
+  "pumps": [
+    { "id": 1, "name": "Pump 1", "varId": 123, "type": "pump" }
+  ],
+  "states": [
+    { "id": 1, "name": "Inlet Valve", "varId": 456, "type": "status" }
+  ]
+}
+```
+
+## Display Mode
+
+When `edit={false}` (dashboard display mode), the component shows:
+
+### Pump Section
+- Visual pump status indicators
+- Runtime or flow rate values
+- Color-coded active/inactive states
+- Historical data if available
+
+### State Section
+- LED-style boolean indicators
+- Current state values
+- Clear on/off or open/closed indication
+
+## Usage Example
+
+```jsx
+import PumpControl from './components/Charts/views/ConfigBombs'
+
+// Configuration mode (in settings)
+<PumpControl
+  edit={true}
+  initialPumps={[]}
+  initialStates={[]}
+  initialTitle="Configure Pump Station"
+/>
+
+// Display mode (on dashboard)
+<PumpControl
+  edit={false}
+  initialPumps={[
+    {
+      id: 1,
+      name: "Primary Pump",
+      varId: 101,
+      value: 1,  // 1 = running, 0 = stopped
+      unit: null,
+      type: "pump"
+    },
+    {
+      id: 2,
+      name: "Secondary Pump",
+      varId: 102,
+      value: 0,
+      unit: null,
+      type: "pump"
+    }
+  ]}
+  initialStates={[
+    {
+      id: 1,
+      name: "Inlet Valve Open",
+      varId: 201,
+      value: 1,  // Boolean: 1 = open, 0 = closed
+      unit: null,
+      type: "status"
+    },
+    {
+      id: 2,
+      name: "High Level Alarm",
+      varId: 202,
+      value: 0,
+      unit: null,
+      type: "status"
+    }
+  ]}
+  initialTitle="Pump Station A"
+/>
+```
+
+## Real-World Use Cases
+
+<Tabs>
+  <Tab title="Main Pump Station">
+    Monitor primary water supply pumps:
+    
+    ```jsx
+    <PumpControl
+      edit={false}
+      initialTitle="Main Water Supply"
+      initialPumps={[
+        { id: 1, name: "Pump 1 - 50HP", varId: 101, value: 1, type: "pump" },
+        { id: 2, name: "Pump 2 - 50HP", varId: 102, value: 1, type: "pump" },
+        { id: 3, name: "Pump 3 - 75HP", varId: 103, value: 0, type: "pump" }
+      ]}
+      initialStates={[
+        { id: 1, name: "Suction Pressure OK", varId: 201, value: 1, type: "status" },
+        { id: 2, name: "Discharge Valve Open", varId: 202, value: 1, type: "status" },
+        { id: 3, name: "Emergency Stop", varId: 203, value: 0, type: "status" }
+      ]}
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Booster Station">
+    Track booster pumps and pressure zones:
+    
+    ```jsx
+    <PumpControl
+      edit={false}
+      initialTitle="Booster Station - Zone 3"
+      initialPumps={[
+        { id: 1, name: "Booster 1", varId: 301, value: 1, type: "pump" },
+        { id: 2, name: "Booster 2", varId: 302, value: 0, type: "pump" }
+      ]}
+      initialStates={[
+        { id: 1, name: "Zone Pressure OK", varId: 401, value: 1, type: "status" },
+        { id: 2, name: "Auto Mode Active", varId: 402, value: 1, type: "status" },
+        { id: 3, name: "VFD Fault", varId: 403, value: 0, type: "status" }
+      ]}
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Treatment Plant">
+    Monitor treatment process pumps:
+    
+    ```jsx
+    <PumpControl
+      edit={false}
+      initialTitle="Chemical Dosing System"
+      initialPumps={[
+        { id: 1, name: "Chlorine Pump", varId: 501, value: 1, type: "pump" },
+        { id: 2, name: "Coagulant Pump", varId: 502, value: 1, type: "pump" },
+        { id: 3, name: "pH Adjustment", varId: 503, value: 1, type: "pump" }
+      ]}
+      initialStates={[
+        { id: 1, name: "Tank 1 Level OK", varId: 601, value: 1, type: "status" },
+        { id: 2, name: "Tank 2 Level OK", varId: 602, value: 1, type: "status" },
+        { id: 3, name: "Flow Rate Normal", varId: 603, value: 1, type: "status" }
+      ]}
+    />
+    ```
+  </Tab>
+</Tabs>
+
+## Integration with Dashboard
+
+PumpControl is registered in the Home dashboard chart components:
+
+```jsx
+// From ~/workspace/source/src/modules/home/views/index.jsx:17-26
+const chartComponents = {
+    LiquidFillPorcentaje,
+    CirclePorcentaje,
+    BarDataSet,
+    PieChart: DoughnutChart,
+    PumpControl,  // ← Available for dashboard widgets
+    GaugeSpeed,
+    BooleanChart,
+    MultipleBooleanChart
+}
+```
+
+Data is automatically fetched and updated every 30 seconds via the `multipleDataInflux` API endpoint.
+
+## API Integration
+
+### Save Configuration
+
+```
+POST /api/bombs
+```
+
+Request body:
+```json
+{
+  "title": "string",
+  "pumps": [
+    {
+      "id": "number",
+      "name": "string",
+      "varId": "number",
+      "type": "pump"
+    }
+  ],
+  "states": [
+    {
+      "id": "number",
+      "name": "string",
+      "varId": "number",
+      "type": "status"
+    }
+  ]
+}
+```
+
+### Fetch Data
+
+Data is fetched through the standard multipleDataInflux endpoint used by the dashboard, which queries all configured InfluxDB variables and returns their current values.
+
+## Validation
+
+Before saving, the component validates:
+
+<Warning>
+  - At least one pump OR one state must be configured
+  - Each item must have a valid InfluxDB variable selected
+  - Names cannot be empty
+</Warning>
+
+## Configuration Dialog
+
+The add pump/state dialog includes:
+
+- **Text field** for name input
+- **Variable selector** component (uses `SelectVars` component)
+- **Type indicator** (automatically set based on dialog type)
+- **Save/Cancel** buttons
+
+## Related Components
+
+- [Multiple Boolean Chart](/components/charts/multiple-boolean) - Grid of boolean indicators
+- [Boolean Chart](/components/charts/boolean-chart) - Single LED indicator
+- [Gauge](/components/charts/gauge) - Speedometer-style gauge with needle
+
+## Best Practices
+
+<Tip>
+  **Organize by function**: Group pumps that work together (parallel pumps, duty/standby pairs) in the same PumpControl panel.
+</Tip>
+
+<Note>
+  **Include critical states**: Always include essential status indicators like emergency stop, pressure alarms, and valve positions alongside pump statuses.
+</Note>
+
+<Warning>
+  **Variable naming**: Use clear, descriptive variable names in InfluxDB that match physical equipment labels for easier configuration.
+</Warning>

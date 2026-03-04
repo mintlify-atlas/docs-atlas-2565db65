@@ -1,0 +1,287 @@
+---
+title: Multiple boolean chart
+description: Grid display of multiple LED indicators showing binary states
+icon: grid
+---
+
+The **MultipleBooleanChart** component displays a grid of LED-style indicators, each showing the on/off state of different equipment or sensors. It's designed for monitoring multiple binary variables in a compact, organized layout.
+
+## Overview
+
+MultipleBooleanChart groups multiple boolean indicators into a card with a customizable grid layout. Each indicator shows:
+
+- **LED visual indicator** with glow effects
+- **Label text** identifying the variable
+- **State text** (custom on/off messages)
+- **Color coding** based on state
+
+This component is ideal for monitoring panels showing multiple pumps, valves, or other binary equipment states.
+
+## Props
+
+<ParamField path="title" type="string">
+  Card title displayed in the header section
+</ParamField>
+
+<ParamField path="items" type="array" required>
+  Array of indicator configurations. Each item should have:
+  
+  <Expandable title="Item properties">
+    <ResponseField name="key" type="string" required>
+      Unique identifier for the indicator
+    </ResponseField>
+    
+    <ResponseField name="title" type="string" required>
+      Label text displayed above the LED
+    </ResponseField>
+    
+    <ResponseField name="value" type="boolean | string" required>
+      Current state value. Boolean true/false, or "Sin datos" for no data.
+    </ResponseField>
+    
+    <ResponseField name="textOn" type="string" default="Encendido">
+      Text to display when value is true
+    </ResponseField>
+    
+    <ResponseField name="textOff" type="string" default="Apagado">
+      Text to display when value is false
+    </ResponseField>
+    
+    <ResponseField name="colorOn" type="string" default="#00ff00">
+      LED color when state is on (hex color code)
+    </ResponseField>
+    
+    <ResponseField name="colorOff" type="string" default="#444444">
+      LED color when state is off (hex color code)
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="columns" type="number" default="2">
+  Number of columns in the grid layout. Currently fixed at 2 in implementation.
+</ParamField>
+
+## Usage Example
+
+```jsx
+import MultipleBooleanChart from './components/Charts/MultipleBooleanChart'
+
+// Monitor multiple pumps
+<MultipleBooleanChart
+  title="Pump Station Status"
+  items={[
+    {
+      key: 'pump1',
+      title: 'Pump 1',
+      value: true,
+      textOn: 'Running',
+      textOff: 'Stopped',
+      colorOn: '#00ff00',
+      colorOff: '#ef4444'
+    },
+    {
+      key: 'pump2',
+      title: 'Pump 2',
+      value: false,
+      textOn: 'Running',
+      textOff: 'Stopped',
+      colorOn: '#00ff00',
+      colorOff: '#ef4444'
+    },
+    {
+      key: 'valve1',
+      title: 'Inlet Valve',
+      value: true,
+      textOn: 'Open',
+      textOff: 'Closed',
+      colorOn: '#3b82f6',
+      colorOff: '#94a3b8'
+    },
+    {
+      key: 'valve2',
+      title: 'Outlet Valve',
+      value: 'Sin datos',
+      textOn: 'Open',
+      textOff: 'Closed',
+      colorOn: '#3b82f6',
+      colorOff: '#94a3b8'
+    }
+  ]}
+/>
+```
+
+## Visual Design
+
+### LED Indicator Component
+
+Each `LedIndicator` within the grid displays:
+
+```
+┌─────────────────────────┐
+│ Label Text              │
+│                         │
+│ ● State Text            │
+│   (LED + text)          │
+└─────────────────────────┘
+```
+
+**LED Specifications**:
+- **Size**: 20px diameter circle
+- **Border**: 2px solid matching the state color
+- **Shadow/Glow**: Color-matched box shadow for visual depth
+- **Transition**: 0.25s ease-in-out for smooth state changes
+
+### State Styling
+
+| State | LED Color | LED Border | Glow Effect | Text Color |
+|-------|-----------|------------|-------------|------------|
+| On | `colorOn` | `colorOn` | Colored glow | `#065f46` (dark green) |
+| Off | `colorOff` | `#6b7280` (gray) | Subtle shadow | `#374151` (dark gray) |
+| No Data | `#9ca3af` (light gray) | `#9ca3af` | Subtle gray glow | `#6b7280` (medium gray) |
+
+### Card Layout
+
+- **Header**: Light gray background (`#f1f5f9`) with title
+- **Grid**: 2-column layout with 8px gap
+- **Height**: 80% of card height for indicator area
+- **Responsive**: Grid adjusts for mobile view
+
+## Real-World Use Cases
+
+<Tabs>
+  <Tab title="Pump Station">
+    Monitor multiple water pumps in a single view:
+    
+    ```jsx
+    <MultipleBooleanChart
+      title="Main Pump Station"
+      items={[
+        { key: 'p1', title: 'Pump 1', value: pumpStates.pump1, 
+          textOn: 'Active', textOff: 'Standby' },
+        { key: 'p2', title: 'Pump 2', value: pumpStates.pump2, 
+          textOn: 'Active', textOff: 'Standby' },
+        { key: 'p3', title: 'Pump 3', value: pumpStates.pump3, 
+          textOn: 'Active', textOff: 'Standby' },
+        { key: 'p4', title: 'Backup Pump', value: pumpStates.backup, 
+          textOn: 'Active', textOff: 'Standby' }
+      ]}
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Valve Control Panel">
+    Track valve positions across the system:
+    
+    ```jsx
+    <MultipleBooleanChart
+      title="Valve Status Panel"
+      items={[
+        { key: 'inlet', title: 'Inlet Valve', value: valves.inlet,
+          textOn: 'Open', textOff: 'Closed', colorOn: '#3b82f6' },
+        { key: 'outlet', title: 'Outlet Valve', value: valves.outlet,
+          textOn: 'Open', textOff: 'Closed', colorOn: '#3b82f6' },
+        { key: 'bypass', title: 'Bypass Valve', value: valves.bypass,
+          textOn: 'Open', textOff: 'Closed', colorOn: '#f59e0b' },
+        { key: 'drain', title: 'Drain Valve', value: valves.drain,
+          textOn: 'Open', textOff: 'Closed', colorOn: '#ef4444' }
+      ]}
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Alarm States">
+    Display multiple alarm conditions:
+    
+    ```jsx
+    <MultipleBooleanChart
+      title="System Alarms"
+      items={[
+        { key: 'highPressure', title: 'High Pressure', 
+          value: alarms.highPressure, textOn: 'ALARM', textOff: 'Normal',
+          colorOn: '#ef4444', colorOff: '#10b981' },
+        { key: 'lowLevel', title: 'Low Tank Level', 
+          value: alarms.lowLevel, textOn: 'ALARM', textOff: 'Normal',
+          colorOn: '#ef4444', colorOff: '#10b981' },
+        { key: 'maintenance', title: 'Maintenance Due', 
+          value: alarms.maintenance, textOn: 'WARNING', textOff: 'OK',
+          colorOn: '#f59e0b', colorOff: '#10b981' },
+        { key: 'power', title: 'Power Supply', 
+          value: alarms.power, textOn: 'FAULT', textOff: 'Normal',
+          colorOn: '#ef4444', colorOff: '#10b981' }
+      ]}
+    />
+    ```
+  </Tab>
+</Tabs>
+
+## Integration with Dashboard
+
+The component is registered in the Home dashboard and receives real-time updates every 30 seconds:
+
+```jsx
+// From ~/workspace/source/src/modules/home/views/index.jsx:17-26
+const chartComponents = {
+    LiquidFillPorcentaje,
+    CirclePorcentaje,
+    BarDataSet,
+    PieChart: DoughnutChart,
+    PumpControl,
+    GaugeSpeed,
+    BooleanChart,
+    MultipleBooleanChart  // ← Available in dashboard
+}
+```
+
+## Empty State
+
+When no items are configured, the component displays a friendly message:
+
+```jsx
+<Card className="p-4">
+  <Typography variant="body2" align="center" color="text.secondary">
+    Sin indicadores configurados
+  </Typography>
+</Card>
+```
+
+## Comparison with Single Boolean Chart
+
+| Feature | MultipleBooleanChart | BooleanChart |
+|---------|---------------------|--------------|
+| Display | Grid of indicators | Single indicator |
+| Use Case | Monitoring panel | Individual status |
+| Layout | Card with header | Standalone component |
+| Size | Compact LEDs | Large LED |
+| Text Position | Above LED | Below LED |
+
+## Best Practices
+
+<Note>
+  **Group related equipment**: Place functionally related equipment (e.g., all pumps in a station) in the same MultipleBooleanChart for easier monitoring.
+</Note>
+
+<Warning>
+  **Limit indicators per card**: Keep 4-6 indicators per card for optimal readability. Use multiple cards for larger systems.
+</Warning>
+
+<Tip>
+  **Color consistency**: Use consistent color schemes across similar equipment types (e.g., all pumps use green/red, all valves use blue/gray).
+</Tip>
+
+## Accessibility
+
+- **Visual + text indication**: Both LED color and text state provide redundant information
+- **High contrast**: Dark borders on LEDs ensure visibility in both light/dark modes
+- **Semantic structure**: Each indicator is a self-contained flex container with proper labels
+
+## Performance
+
+- **Lightweight rendering**: Simple CSS styling, no canvas rendering
+- **Fast updates**: React efficiently re-renders only changed indicators
+- **Suitable for real-time**: 30-second update interval works well with the component
+
+## Related Components
+
+- [Boolean Chart](/components/charts/boolean-chart) - Single LED indicator
+- [Pump Control](/components/charts/pump-control) - Specialized pump + state monitoring
+- [Circle Percentage](/components/charts/circle-percentage) - Circular percentage gauge
