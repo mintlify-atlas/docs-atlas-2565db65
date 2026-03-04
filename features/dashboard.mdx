@@ -1,0 +1,209 @@
+---
+title: 'Dashboard Overview'
+description: 'Real-time monitoring dashboard for water treatment metrics'
+icon: 'gauge'
+---
+
+The Centinela dashboard provides a comprehensive, real-time view of your water treatment system's key performance indicators. All widgets update automatically every 30 seconds to ensure you have the latest operational data.
+
+## Dashboard Layout
+
+The dashboard uses a responsive grid layout that adapts to your screen size. Each monitoring widget is displayed in a card format with real-time data visualization.
+
+<Note>
+  The dashboard automatically refreshes data every 30 seconds. You'll see a loading animation on each widget during updates.
+</Note>
+
+## Available Chart Types
+
+The dashboard supports multiple visualization types, each designed for specific monitoring needs:
+
+<CardGroup cols={2}>
+  <Card title="Liquid Fill Gauges" icon="droplet">
+    Animated liquid-filled shapes showing percentage or volume measurements with multiple shape options (circle, rectangle, triangle, diamond).
+  </Card>
+  
+  <Card title="Circle Gauges" icon="circle-half-stroke">
+    Percentage indicators with circular progress bars, ideal for capacity and fill level monitoring.
+  </Card>
+  
+  <Card title="Speed Gauges" icon="gauge-high">
+    Traditional gauge displays for flow rates, pressure, and speed measurements with needle indicators.
+  </Card>
+  
+  <Card title="Boolean LED Indicators" icon="lightbulb">
+    Visual on/off status indicators with customizable colors and labels for equipment states.
+  </Card>
+  
+  <Card title="Pump Controls" icon="pump">
+    Multi-pump status displays showing operational state and control parameters.
+  </Card>
+  
+  <Card title="Pie Charts" icon="chart-pie">
+    Distribution visualizations for categorical data analysis.
+  </Card>
+</CardGroup>
+
+## Widget Features
+
+### Data Source Integration
+
+Each dashboard widget connects to InfluxDB variables to display real-time measurements:
+
+```javascript
+// Example: Dashboard fetches multiple variables in a single request
+const variables = [
+  { dataInflux: { id: 1, name: "Tank Level", unit: "m³" } },
+  { dataInflux: { id: 2, name: "Flow Rate", unit: "L/s" } },
+  { dataInflux: { id: 3, name: "Pressure", unit: "bar" } }
+];
+```
+
+### Auto-Refresh Mechanism
+
+The dashboard implements an efficient polling system:
+
+<Steps>
+  <Step title="Initial Load">
+    On page load, the system fetches all configured chart widgets from the backend.
+  </Step>
+  
+  <Step title="Variable Extraction">
+    All InfluxDB variables are extracted from the chart configurations into a single batch request.
+  </Step>
+  
+  <Step title="Batch Data Fetch">
+    A single API call retrieves values for all variables simultaneously, reducing server load.
+  </Step>
+  
+  <Step title="Automatic Updates">
+    Every 30 seconds, the batch fetch repeats to refresh all dashboard data.
+  </Step>
+</Steps>
+
+### Responsive Grid System
+
+Widgets automatically adjust their size based on screen dimensions:
+
+- **Mobile (xs)**: 12 columns (full width)
+- **Tablet (sm)**: 8 columns for pump controls, 4 for standard widgets
+- **Desktop (lg)**: 4 columns for pump controls, 2 for standard widgets
+
+## Widget Configuration
+
+Each widget is configured through the Chart Configuration interface and stored in the database:
+
+<Accordion title="Liquid Fill Widget Example">
+  ```json
+  {
+    "type": "LiquidFillPorcentaje",
+    "props": {
+      "title": "Tank A Level",
+      "color": "#38bdf8",
+      "shape": "circle",
+      "porcentage": false,
+      "border": true,
+      "unidad": "m³"
+    },
+    "data": {
+      "value": {
+        "id": 15,
+        "name": "tank_level",
+        "unit": "m³",
+        "varsInflux": "tank_a_level"
+      },
+      "maxValue": 100
+    }
+  }
+  ```
+</Accordion>
+
+<Accordion title="Gauge Speed Widget Example">
+  ```json
+  {
+    "type": "GaugeSpeed",
+    "props": {
+      "title": "Flow Rate",
+      "color": "#5c5ac7"
+    },
+    "data": {
+      "value": {
+        "id": 22,
+        "name": "flow_rate",
+        "unit": "L/s",
+        "varsInflux": "main_flow"
+      },
+      "maxValue": 50,
+      "description": "Main line",
+      "unidad": "L/s"
+    }
+  }
+  ```
+</Accordion>
+
+<Accordion title="Boolean Chart Widget Example">
+  ```json
+  {
+    "type": "BooleanChart",
+    "props": {
+      "title": "Pump 1 Status",
+      "textOn": "Running",
+      "textOff": "Stopped",
+      "colorOn": "#00ff00",
+      "colorOff": "#444444"
+    },
+    "data": {
+      "value": {
+        "id": 8,
+        "name": "pump_1_state",
+        "varsInflux": "pump1_status"
+      }
+    }
+  }
+  ```
+</Accordion>
+
+## Data Handling
+
+### Missing Data
+
+When sensor data is unavailable, widgets display "Sin datos" (No data) and enter a safe visual state:
+
+- Liquid fill animations pause
+- Gauges show gray colors
+- LED indicators display offline status
+
+### Multi-Value Widgets
+
+Some widgets support displaying multiple related measurements:
+
+```javascript
+// Liquid Fill with primary and secondary values
+{
+  value: { /* Primary measurement */ },
+  secondary: { /* Secondary measurement */ },
+  bottom1: { /* Additional info */ },
+  bottom2: { /* Additional info */ }
+}
+```
+
+## Performance Optimization
+
+<Warning>
+  The dashboard uses a single batched API request for all variables instead of individual requests per widget. This significantly reduces network overhead and server load.
+</Warning>
+
+**Key optimizations:**
+
+- **Batch API calls**: One request fetches all variable values
+- **30-second intervals**: Balances freshness with system load
+- **Conditional rendering**: Only active chart types are loaded
+- **Memoized components**: Prevents unnecessary re-renders
+
+## Navigation
+
+Access the dashboard from the main navigation menu. It serves as your primary monitoring interface, providing at-a-glance status of all critical water treatment parameters.
+
+<Card title="Next Steps" icon="arrow-right">
+  Learn how to create and customize charts in the [Charts documentation](/features/charts).
+</Card>

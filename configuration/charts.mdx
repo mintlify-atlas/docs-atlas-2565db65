@@ -1,0 +1,379 @@
+---
+title: Chart Configuration
+description: Configure visualization charts for monitoring water treatment metrics in real-time
+---
+
+Charts provide powerful visual representations of your water treatment data. The Centinela system supports multiple chart types, each designed for specific monitoring scenarios.
+
+## Available Chart Types
+
+The system offers 11 different chart types to visualize your monitoring data:
+
+<Accordion title="Liquid Fill Charts">
+  Visualize percentage or absolute values with animated wave effects.
+  
+  **Supported Shapes:**
+  - Circle (ID: 1)
+  - Rectangle (ID: 4)
+  
+  **Use Cases:** Tank levels, capacity monitoring, flow percentages
+</Accordion>
+
+<Accordion title="Percentage Charts">
+  Simple circular progress indicators without animations.
+  
+  **Chart ID:** 2
+  
+  **Use Cases:** Quick status indicators, simple progress metrics
+</Accordion>
+
+<Accordion title="Pie Charts">
+  Multi-category donut charts with rounded edges.
+  
+  **Chart ID:** 3
+  
+  **Use Cases:** Distribution visualization, comparative analysis
+</Accordion>
+
+<Accordion title="Line Charts">
+  Time-series data with overlapping lines.
+  
+  **Chart ID:** 6
+  
+  **Use Cases:** Historical trends, multi-variable comparison
+</Accordion>
+
+<Accordion title="Speed Gauge">
+  Gauge-style speedometer visualization.
+  
+  **Chart ID:** 8
+  
+  **Use Cases:** Flow rates, pressure monitoring, speed indicators
+</Accordion>
+
+<Accordion title="Boolean Charts">
+  LED-style on/off indicators with customizable colors.
+  
+  **Chart ID:** 9
+  
+  **Use Cases:** Pump status, valve states, binary sensors
+</Accordion>
+
+<Accordion title="Multiple Boolean Charts">
+  Display multiple LED indicators in a single chart.
+  
+  **Chart ID:** 10
+  
+  **Use Cases:** System overview, multi-pump status
+</Accordion>
+
+<Accordion title="Board Chart">
+  Comprehensive dashboard combining charts, pump states, and room status.
+  
+  **Chart ID:** 11
+  
+  **Use Cases:** Central monitoring, control room displays
+</Accordion>
+
+## Creating a Chart
+
+<Steps>
+  <Step title="Navigate to Chart Configuration">
+    Access the configuration menu and select "Charts" to view the chart type selector.
+  </Step>
+  
+  <Step title="Select Chart Type">
+    Choose the appropriate chart type based on your visualization needs. Each card displays a preview and description.
+  </Step>
+  
+  <Step title="Configure Chart Parameters">
+    Fill in the required configuration based on the chart type selected.
+  </Step>
+  
+  <Step title="Save Configuration">
+    Review your settings and save the chart to make it available on the dashboard.
+  </Step>
+</Steps>
+
+## Chart Configuration Reference
+
+### Simple Charts (Liquid Fill, Gauge, Circle)
+
+These charts display a single variable with visual styling options.
+
+<ParamField path="title" type="string" required>
+  Display name for the chart (minimum 1 character)
+</ParamField>
+
+<ParamField path="idVar" type="number" required>
+  ID of the InfluxDB variable to visualize
+</ParamField>
+
+<ParamField path="maxValue" type="number" required>
+  Maximum value for percentage calculations
+</ParamField>
+
+<ParamField path="order" type="number" required>
+  Display order on the dashboard (minimum 1)
+</ParamField>
+
+<ParamField path="color" type="string" default="#363F9C">
+  Hexadecimal color code for the chart
+</ParamField>
+
+<ParamField path="unidad" type="string">
+  Unit of measurement (e.g., "L", "m³", "bar")
+</ParamField>
+
+<ParamField path="porcentage" type="boolean" default="true">
+  Display value as percentage or absolute number
+</ParamField>
+
+<ParamField path="border" type="boolean" default="true">
+  Show border around the chart
+</ParamField>
+
+<ParamField path="shape" type="string">
+  Shape style: `circle` or `rect` (for Liquid Fill charts)
+</ParamField>
+
+**Example Configuration:**
+
+```javascript
+{
+  title: "Tank A Level",
+  idVar: 42,
+  maxValue: 1000,
+  order: 1,
+  color: "#363F9C",
+  unidad: "L",
+  porcentage: true,
+  border: true,
+  shape: "circle"
+}
+```
+
+### Boolean Chart
+
+Visualizes binary states with customizable LED colors and labels.
+
+<ParamField path="title" type="string" required>
+  Chart title
+</ParamField>
+
+<ParamField path="textOn" type="string" required>
+  Label displayed when state is ON
+</ParamField>
+
+<ParamField path="textOff" type="string" required>
+  Label displayed when state is OFF
+</ParamField>
+
+<ParamField path="colorOn" type="string" required>
+  Hexadecimal color for ON state (must be valid hex)
+</ParamField>
+
+<ParamField path="colorOff" type="string" required>
+  Hexadecimal color for OFF state (must differ from colorOn)
+</ParamField>
+
+<ParamField path="order" type="number" required>
+  Dashboard display order
+</ParamField>
+
+**Validation Schema:**
+
+```javascript
+import { z } from 'zod'
+
+const BooleanChartSchema = z.object({
+  title: z.string().min(1, 'Title is required').trim(),
+  textOn: z.string().min(1, 'ON text is required').trim(),
+  textOff: z.string().min(1, 'OFF text is required').trim(),
+  colorOn: z.string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Invalid hex color'),
+  colorOff: z.string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Invalid hex color'),
+  order: z.number().min(1)
+})
+.superRefine((data, ctx) => {
+  if (data.colorOn === data.colorOff) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'ON and OFF colors must be different',
+      path: ['colorOn']
+    })
+  }
+})
+```
+
+### Pie Chart
+
+Display multiple variables as proportional segments.
+
+<ParamField path="title" type="string" required>
+  Chart title
+</ParamField>
+
+<ParamField path="categories" type="array" required>
+  Array of category objects defining each segment
+</ParamField>
+
+**Category Object Structure:**
+
+<ParamField path="categories[].var_id" type="number" required>
+  Variable ID from InfluxDB
+</ParamField>
+
+<ParamField path="categories[].name" type="string" required>
+  Display name for the category
+</ParamField>
+
+<ParamField path="categories[].color" type="string" required>
+  Hexadecimal color for the segment
+</ParamField>
+
+**Example:**
+
+```javascript
+{
+  title: "Water Distribution",
+  type: "PieChart",
+  categories: [
+    {
+      var_id: 15,
+      name: "Treatment Area",
+      color: "#4CAF50"
+    },
+    {
+      var_id: 16,
+      name: "Storage Tanks",
+      color: "#2196F3"
+    },
+    {
+      var_id: 17,
+      name: "Distribution",
+      color: "#FFC107"
+    }
+  ]
+}
+```
+
+### Line Chart
+
+Time-series visualization with configurable date ranges.
+
+<ParamField path="title" type="string" required>
+  Chart title
+</ParamField>
+
+<ParamField path="xAxisConfig" type="object" required>
+  X-axis time configuration
+</ParamField>
+
+<ParamField path="xAxisConfig.dateTimeType" type="string" required>
+  Time range type: `relative` or `absolute`
+</ParamField>
+
+<ParamField path="yData" type="array" required>
+  Array of variables to plot (minimum 1 variable)
+</ParamField>
+
+**Relative Date Range:**
+
+```javascript
+xAxisConfig: {
+  dateTimeType: "relative",
+  dateRange: "24h",      // e.g., "1h", "6h", "24h", "7d"
+  samplingPeriod: "5m"   // e.g., "1m", "5m", "1h"
+}
+```
+
+**Absolute Date Range:**
+
+```javascript
+xAxisConfig: {
+  dateTimeType: "absolute",
+  dateFrom: "2024-01-01T00:00:00",
+  dateTo: "2024-01-31T23:59:59"
+}
+```
+
+<Note>
+  All timestamps should be in ISO 8601 format for absolute date ranges.
+</Note>
+
+## Chart Configuration Object
+
+The `configs` object in `/src/modules/Charts/configs/configs.js` defines the requirements for each chart type:
+
+```javascript
+export const configs = {
+  1: {
+    id: 1,
+    typeGraph: 'LiquidFillPorcentaje',
+    title: 1,           // 0=Not required, 1=Required, 2=Optional
+    value: 1,
+    maxValue: 1,
+    unity: 2,
+    color: 2,
+    singleValue: true,
+    order: 1,
+    preConfig: {
+      color: '#363F9C',
+      porcentage: 'true',
+      shape: 'circle',
+      border: 'true'
+    }
+  }
+  // ... additional chart configurations
+}
+```
+
+<Warning>
+  Field requirements are indicated by numeric codes:
+  - `0` = Not required
+  - `1` = Required
+  - `2` = Optional
+</Warning>
+
+## API Endpoints
+
+Chart configuration uses the following endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/charts` | POST | Create new chart |
+| `/charts/:id` | GET | Retrieve chart configuration |
+| `/charts/:id` | POST | Update existing chart |
+| `/chartSeries` | POST | Create line chart |
+| `/chartSeries/:id` | POST | Update line chart |
+| `/pie` | POST | Create pie chart |
+
+**Source Reference:** `/src/modules/Charts/views/ConfigGraphic.jsx:79-86`
+
+## Best Practices
+
+<Accordion title="Choose the Right Chart Type">
+  - Use **Boolean charts** for binary states (pumps, valves)
+  - Use **Liquid Fill** for tank levels and capacities
+  - Use **Line charts** for historical trends
+  - Use **Gauge** for rate-based metrics (flow, pressure)
+</Accordion>
+
+<Accordion title="Color Selection">
+  - Maintain consistency across similar metrics
+  - Use green (#00FF00) for normal/on states
+  - Use red/orange for warnings
+  - Ensure sufficient contrast for readability
+</Accordion>
+
+<Accordion title="Performance Considerations">
+  - Limit line charts to 5-7 variables for optimal rendering
+  - Use appropriate sampling periods for historical data
+  - Set reasonable date ranges to avoid overwhelming the UI
+</Accordion>
+
+<Note>
+  Charts are automatically added to the dashboard based on their `order` parameter. Lower numbers appear first.
+</Note>

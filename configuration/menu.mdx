@@ -1,0 +1,534 @@
+---
+title: Menu Configuration
+description: Customize navigation menus and configure user/role-based access permissions
+---
+
+The menu configuration module allows administrators to customize the application navigation structure and control access through role-based and user-specific permissions.
+
+## Menu Structure
+
+The Centinela system uses a hierarchical menu structure:
+
+- **Top-level menus** (level 0): Main navigation items
+- **Sub-menus** (level 1+): Nested under parent menus
+- **Groups**: Logical groupings of related menus
+
+## Menu Properties
+
+Each menu item has the following properties:
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the menu item
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  Display name shown in the navigation
+</ParamField>
+
+<ParamField path="path" type="string" required>
+  Route path for the menu item (e.g., `/config/alarms`)
+</ParamField>
+
+<ParamField path="group_menu" type="string" required>
+  Group identifier for organizing related menus
+</ParamField>
+
+<ParamField path="level" type="string" required>
+  Hierarchy level:
+  - `"0"` = Top-level menu
+  - `"1"` = First-level sub-menu
+  - `"2"` = Second-level sub-menu
+</ParamField>
+
+<ParamField path="sub_menu" type="string | null">
+  Parent menu ID if this is a sub-menu, `null` for top-level menus
+</ParamField>
+
+<ParamField path="status" type="string">
+  Menu visibility status:
+  - `"1"` = Active/visible
+  - `"0"` = Inactive/hidden
+</ParamField>
+
+<ParamField path="order" type="number">
+  Display order within the menu group (lower numbers appear first)
+</ParamField>
+
+<ParamField path="icon" type="string">
+  Icon identifier for the menu item (optional)
+</ParamField>
+
+<ParamField path="action" type="string">
+  Special action or handler (optional)
+</ParamField>
+
+## Default Menu Structure
+
+The system includes these predefined menu groups:
+
+```javascript
+const menuGroups = [
+  {
+    id: '1',
+    name: 'Mapa',
+    path: '/map',
+    group_menu: '1',
+    level: '0'
+  },
+  {
+    id: '2',
+    name: 'Alertas',
+    path: '/Alert',
+    group_menu: '2',
+    level: '0'
+  },
+  {
+    id: '3',
+    name: 'Diagrama',
+    path: '/Diagram',
+    group_menu: '3',
+    level: '0'
+  },
+  {
+    id: '4',
+    name: 'Pestañas',
+    path: '/tabs',
+    group_menu: '4',
+    level: '0'
+  },
+  {
+    id: '5',
+    name: 'Configuracion',
+    path: '/config',
+    group_menu: '5',
+    level: '0',
+    subMenus: [
+      {
+        id: '6',
+        name: 'Configuracion Seguridad',
+        path: '/config/security',
+        sub_menu: 5
+      },
+      {
+        id: '7',
+        name: 'Configuracion Menu',
+        path: '/config/menu',
+        sub_menu: 5
+      }
+    ]
+  }
+]
+```
+
+**Source Reference:** `/src/modules/ConfigMenu/utils/DataMenu/menus.js:1-134`
+
+## Permission System
+
+The system supports two levels of permissions:
+
+<Tabs>
+  <Tab title="Profile Permissions">
+    Define default access for all users in a role/profile.
+    
+    **Use Case:** Grant all operators access to monitoring dashboards
+    
+    **Priority:** Profile permissions are applied first as defaults
+  </Tab>
+  
+  <Tab title="User Permissions">
+    Override profile permissions for individual users.
+    
+    **Use Case:** Grant specific user access to admin functions
+    
+    **Priority:** User permissions override profile permissions
+  </Tab>
+</Tabs>
+
+### Permission Object Structure
+
+```javascript
+const permission = {
+  id: 1,                    // Permission record ID
+  id_menu: 5,               // Menu item ID
+  status: true,             // Granted (true) or denied (false)
+  id_profile: 2,            // Profile ID (null for user permissions)
+  id_user: null             // User ID (null for profile permissions)
+}
+```
+
+## Configuring Permissions
+
+<Steps>
+  <Step title="Navigate to Menu Configuration">
+    Access Configuration > Menu to open the permission management interface.
+  </Step>
+  
+  <Step title="Select Profile or User">
+    Choose whether to configure profile-wide or user-specific permissions.
+  </Step>
+  
+  <Step title="Review Menu Hierarchy">
+    The interface displays all menus in an accordion structure organized by groups.
+  </Step>
+  
+  <Step title="Grant/Revoke Permissions">
+    Check or uncheck boxes to grant or revoke access to specific menus.
+  </Step>
+  
+  <Step title="Save Changes">
+    Click "Guardar" to save the permission configuration.
+  </Step>
+</Steps>
+
+## Permission Interface Components
+
+### Accordion Structure
+
+Menus are displayed in expandable accordions:
+
+```jsx
+<Accordion expanded={isExpanded} onChange={handleAccordionChange(groupMenu.id)}>
+  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <Checkbox
+      checked={checked}
+      indeterminate={indeterminate}
+      onClick={() => handleCheckboxChange(groupMenu.id, groupMenu.subMenus)}
+    />
+    <Typography>{groupMenu.name}</Typography>
+  </AccordionSummary>
+  <AccordionDetails>
+    {/* Sub-menu items */}
+  </AccordionDetails>
+</Accordion>
+```
+
+**Source Reference:** `/src/modules/ConfigMenu/components/PermissionMenu/PermissionMenu.jsx:218-270`
+
+### Checkbox States
+
+<ParamField path="checked" type="boolean">
+  All sub-menus have permission granted
+</ParamField>
+
+<ParamField path="unchecked" type="boolean">
+  No sub-menus have permission granted
+</ParamField>
+
+<ParamField path="indeterminate" type="boolean">
+  Some (but not all) sub-menus have permission granted
+</ParamField>
+
+**State Calculation:**
+
+```javascript
+const calculateCheckboxState = (menu) => {
+  if (!menu.subMenus || menu.subMenus.length < 1) {
+    return {
+      checked: selectedMenus[menu.id]?.status || false,
+      indeterminate: false
+    }
+  }
+  
+  const subMenusSelected = menu.subMenus.map(
+    (sub) => selectedMenus[sub.id]?.status || false
+  )
+  const allSelected = subMenusSelected.every(Boolean)
+  const noneSelected = subMenusSelected.every((selected) => !selected)
+  
+  return {
+    checked: allSelected,
+    indeterminate: !allSelected && !noneSelected
+  }
+}
+```
+
+**Source Reference:** `/src/modules/ConfigMenu/components/PermissionMenu/PermissionMenu.jsx:56-80`
+
+## Permission Inheritance
+
+### Hierarchical Selection
+
+When a parent menu checkbox is toggled, all sub-menus inherit the same status:
+
+```javascript
+const handleCheckboxChange = (id, subMenus, type_select) => {
+  const updateSelection = (menus, isSelected) => {
+    return menus.reduce((acc, menu) => {
+      acc[menu.id] = { status: isSelected, id: menu.id, type_select }
+      if (menu.subMenus) {
+        Object.assign(acc, updateSelection(menu.subMenus, isSelected))
+      }
+      return acc
+    }, {})
+  }
+  
+  const isSelected = !selectedMenus[id]?.status || 0
+  const updatedSelection = updateSelection(subMenus, isSelected)
+  
+  setSelectedMenus({
+    ...selectedMenus,
+    [id]: { status: isSelected, id: id, type_select },
+    ...updatedSelection
+  })
+}
+```
+
+**Source Reference:** `/src/modules/ConfigMenu/components/PermissionMenu/PermissionMenu.jsx:28-47`
+
+### Profile Permission Locking
+
+When configuring user permissions, menu items granted via profile permissions are disabled:
+
+```javascript
+<Checkbox
+  checked={checked}
+  indeterminate={indeterminate}
+  disabled={
+    profile ? false : permissonProfileData.some(
+      (perm) => Boolean(perm.id_profile) && 
+                Boolean(perm.status) && 
+                perm.id_menu == groupMenu.id
+    )
+  }
+/>
+```
+
+<Note>
+  Users cannot have permissions revoked at the user level if they're granted by their profile. Profile permissions must be changed to remove access.
+</Note>
+
+**Source Reference:** `/src/modules/ConfigMenu/components/PermissionMenu/PermissionMenu.jsx:236-244`
+
+## Saving Permissions
+
+Permissions are saved by sending the complete permission set to the backend:
+
+```javascript
+const SaveMenu = async () => {
+  try {
+    const allMenus = desestructurarMenus(Object.values(groupedMenus))
+    const result = allMenus.map((item) => {
+      const arrayUpdate = id_user ? permissonUserData : permissonProfileData
+      const permissionItem = arrayUpdate.find(
+        (prem) => prem.id_menu == item.id
+      ) || { id: 0 }
+      
+      return {
+        id: permissionItem.id || 0,
+        id_menu: item.id,
+        status: id_user && selectedMenus[item.id].type_select == 'user_id'
+          ? selectedMenus[item.id].status
+          : id_user && selectedMenus[item.id].type_select == 'profile'
+          ? false
+          : selectedMenus?.[item.id]?.status || false,
+        id_profile: profile || null,
+        id_user: id_user || null
+      }
+    })
+    
+    await request(backend['Centinela'] + '/savePermission', 'POST', result)
+    setPermission(await getPermissionDb())
+    
+    Swal.fire({
+      title: 'Perfecto!',
+      text: 'Se guardó correctamente',
+      icon: 'success'
+    })
+  } catch (error) {
+    Swal.fire({
+      title: 'Atención!',
+      text: 'Hubo un error en el guardado',
+      icon: 'warning'
+    })
+  }
+}
+```
+
+**Source Reference:** `/src/modules/ConfigMenu/components/PermissionMenu/PermissionMenu.jsx:170-204`
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/getAllMenu` | GET | Retrieve all menu items |
+| `/getPermission` | GET | Get permissions for user or profile |
+| `/savePermission` | POST | Save permission configuration |
+
+### Get Permissions Request
+
+```javascript
+const params = {
+  id: id_user ? id_user : profile,
+  type: id_user ? 'id_user' : 'id_profile',
+  profile: id_user ? data.profile : profile
+}
+
+const { data } = await request(
+  `${backend['Centinela']}/getPermission?id=${params.id}&type=${params.type}&profile=${params.profile}`,
+  'GET'
+)
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "id_menu": 5,
+      "status": true,
+      "id_profile": 2,
+      "id_user": null
+    },
+    {
+      "id": 2,
+      "id_menu": 6,
+      "status": true,
+      "id_profile": null,
+      "id_user": 15
+    }
+  ]
+}
+```
+
+**Source Reference:** `/src/modules/ConfigMenu/components/PermissionMenu/PermissionMenu.jsx:129-158`
+
+## Menu Grouping Logic
+
+Menus are grouped hierarchically using the `group_menu` and `sub_menu` properties:
+
+```javascript
+const groupedMenu = async (data) => {
+  const result = data.reduce((acc, menu) => {
+    const groupMenuId = parseInt(menu.group_menu)
+    
+    if (!acc[groupMenuId]) {
+      acc[groupMenuId] = { ...menu, subMenus: [] }
+    }
+    
+    if (menu.sub_menu) {
+      const parentMenu = acc[groupMenuId]
+      const subMenu = { ...menu, subMenus: [] }
+      
+      const findAndAddSubMenu = (parent, sub) => {
+        if (parent.id === sub.sub_menu) {
+          parent.subMenus.push(sub)
+        } else {
+          for (let i = 0; i < parent.subMenus.length; i++) {
+            findAndAddSubMenu(parent.subMenus[i], sub)
+          }
+        }
+      }
+      
+      findAndAddSubMenu(parentMenu, subMenu)
+    }
+    
+    return acc
+  }, {})
+  
+  return Object.values(result).sort((a, b) => a.order - b.order)
+}
+```
+
+**Source Reference:** `/src/modules/ConfigMenu/components/PermissionMenu/PermissionMenu.jsx:91-115`
+
+## Best Practices
+
+<Accordion title="Profile-Based Permissions">
+  **Recommended Approach:**
+  1. Define roles/profiles (Operator, Supervisor, Administrator)
+  2. Grant base permissions at the profile level
+  3. Use user-specific permissions only for exceptions
+  
+  **Benefits:**
+  - Easier to manage large user bases
+  - Consistent access within roles
+  - Reduced configuration overhead
+</Accordion>
+
+<Accordion title="Menu Organization">
+  **Guidelines:**
+  - Group related functions under common parent menus
+  - Limit nesting to 2-3 levels for usability
+  - Use clear, descriptive names
+  - Order menus by frequency of use
+  
+  **Example Hierarchy:**
+  ```
+  Configuration (Parent)
+  ├── Charts (Sub-menu)
+  ├── Variables (Sub-menu)
+  ├── Alarms (Sub-menu)
+  └── Security (Sub-menu)
+      ├── Users (Sub-sub-menu)
+      └── Profiles (Sub-sub-menu)
+  ```
+</Accordion>
+
+<Accordion title="Permission Auditing">
+  Regular reviews:
+  - Quarterly review of profile permissions
+  - Monthly audit of user-specific overrides
+  - Document reasons for exceptions
+  - Remove permissions when users change roles
+</Accordion>
+
+## Troubleshooting
+
+<Accordion title="User Cannot Access Menu">
+  **Debugging Steps:**
+  1. Check if menu is active (`status: "1"`)
+  2. Verify user's profile has permission
+  3. Check for user-specific permission override
+  4. Confirm menu path matches route configuration
+  5. Clear browser cache and refresh
+</Accordion>
+
+<Accordion title="Checkbox State Incorrect">
+  **Common Causes:**
+  - Profile permission overriding user permission
+  - Cache not refreshed after permission change
+  - Hierarchical state calculation issue
+  
+  **Solution:**
+  1. Reload the permission configuration page
+  2. Verify in database that permissions saved correctly
+  3. Check browser console for JavaScript errors
+</Accordion>
+
+<Accordion title="Cannot Save Permissions">
+  **Checklist:**
+  1. Ensure you have admin privileges
+  2. Check network tab for API errors
+  3. Verify backend endpoint is accessible
+  4. Review request payload for malformed data
+</Accordion>
+
+<Warning>
+  Removing access to critical menus (like Configuration or Security) can lock administrators out. Always maintain at least one admin profile with full access.
+</Warning>
+
+## Security Considerations
+
+<Accordion title="Principle of Least Privilege">
+  Grant users only the minimum permissions needed:
+  - Operators: Monitoring and basic operations
+  - Supervisors: Configuration and reports
+  - Administrators: Full system access
+</Accordion>
+
+<Accordion title="Permission Changes">
+  - Log all permission modifications
+  - Require approval for sensitive permission grants
+  - Notify users when their permissions change
+  - Maintain audit trail
+</Accordion>
+
+<Accordion title="Default Deny">
+  New users and profiles should have no permissions by default. Explicitly grant access rather than revoking it.
+</Accordion>
+
+<Note>
+  Permission changes take effect immediately after saving. Users may need to refresh their browser or log out and back in to see updated menus.
+</Note>

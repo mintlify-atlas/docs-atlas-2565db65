@@ -1,0 +1,465 @@
+---
+title: 'Liquid Fill'
+description: 'Animated liquid fill gauge component for displaying percentage-based metrics with multiple shape options and wave effects'
+icon: 'droplet'
+---
+
+## Overview
+
+The Liquid Fill component renders an animated container with a waving liquid surface that rises to represent a percentage value. Supports multiple shapes (circle, rectangle, triangle, etc.) and can display single or multiple values simultaneously.
+
+<Note>
+  **Dependency**: This component requires the `echarts-liquidfill` plugin to be imported.
+</Note>
+
+## Operating Modes
+
+The component operates in two distinct modes:
+
+1. **Single Mode**: Displays one value with customizable appearance
+2. **Multiple Mode**: Displays primary value with optional secondary value
+
+## Single Mode Props
+
+<ParamField path="value" type="number" required>
+  The numeric value to display (not percentage). Combined with `maxValue` to calculate fill percentage.
+  
+  ```javascript
+  value={45.5}           // Current measurement
+  value={null}           // Shows "Sin datos"
+  ```
+</ParamField>
+
+<ParamField path="maxValue" type="number" default="1">
+  Maximum value for percentage calculation. Percentage = `value / maxValue`.
+  
+  ```javascript
+  maxValue={100}         // value of 75 = 75% fill
+  maxValue={500}         // value of 250 = 50% fill
+  ```
+</ParamField>
+
+<ParamField path="color" type="string" default="#38bdf8">
+  Primary liquid color (middle of gradient). Accepts hex colors.
+  
+  ```javascript
+  color="#10b981"        // Green
+  color="#3b82f6"        // Blue
+  color="#f59e0b"        // Amber
+  ```
+</ParamField>
+
+<ParamField path="shape" type="string" default="circle">
+  Container shape. Available options:
+  - `'circle'` - Perfect circle (default)
+  - `'rect'` - Rectangle
+  - `'roundRect'` - Rounded rectangle
+  - `'triangle'` - Triangle
+  - `'diamond'` - Diamond shape
+  - `'pin'` - Map pin shape
+  - `'arrow'` - Arrow shape
+  
+  ```javascript
+  shape="circle"         // Round container
+  shape="roundRect"      // Soft edges
+  shape="triangle"       // Triangular tank
+  ```
+</ParamField>
+
+<ParamField path="porcentage" type="boolean" default="false">
+  Display format toggle:
+  - `true`: Shows percentage value (e.g., "75.5 %")
+  - `false`: Shows absolute value with unit (e.g., "45.50 m³")
+  
+  ```javascript
+  porcentage={true}      // "85.0 %"
+  porcentage={false}     // "85.00 L"
+  ```
+</ParamField>
+
+<ParamField path="border" type="boolean" default="true">
+  Enable or disable the decorative outer border with gradient.
+  
+  ```javascript
+  border={true}          // Show border (default)
+  border={false}         // Borderless
+  ```
+</ParamField>
+
+<ParamField path="unidad" type="string" default="">
+  Unit of measurement displayed after the value (only when `porcentage={false}`).
+  
+  ```javascript
+  unidad="m³"            // Cubic meters
+  unidad="L"             // Liters
+  unidad="gal"           // Gallons
+  ```
+</ParamField>
+
+<ParamField path="other" type="string | false" default="false">
+  Optional second line of text below the main value.
+  
+  ```javascript
+  other="Tanque Norte"   // Additional label
+  other={false}          // No additional text
+  ```
+</ParamField>
+
+## Multiple Mode Props
+
+<ParamField path="multipleValues" type="object">
+  When provided, switches to multiple-value mode. Overrides single-mode props.
+  
+  **Object Structure:**
+  
+  ```javascript
+  multipleValues={{
+    value: { value: 45.5 },        // Or just: value: 45.5
+    maxValue: 100,                  // Or: maxValue: { value: 100 }
+    secondary: {
+      varsInflux: { temp: true },  // Presence indicates secondary value exists
+      value: 22.5,
+      unit: "°C"
+    }
+  }}
+  ```
+  
+  <ParamField path="value">
+    Primary value. Can be `{ value: number }` or just `number`.
+  </ParamField>
+  
+  <ParamField path="maxValue">
+    Maximum for percentage calculation. Can be `{ value: number }` or `number`.
+  </ParamField>
+  
+  <ParamField path="secondary" type="object" optional>
+    Secondary measurement configuration:
+    - `varsInflux`: Object indicating presence of InfluxDB variables (any keys)
+    - `value`: Numeric value to display
+    - `unit`: Unit string for this value
+  </ParamField>
+</ParamField>
+
+## Shape Configurations
+
+Each shape has optimized parameters for best appearance:
+
+| Shape | Radius | Amplitude | Wave Length | Font Size | Outline Distance |
+|-------|--------|-----------|-------------|-----------|------------------|
+| circle | 90% | 8 | 90% | 24px | 4 |
+| rect | 85% | 6 | 90% | 24px | 4 |
+| roundRect | 90% | 8 | 90% | 24px | 4 |
+| triangle | 80% | 8 | 90% | 22px | 0 |
+| diamond | 90% | 8 | 90% | 22px | 4 |
+| arrow | 70% | 8 | 90% | 18px | 4 |
+| pin | 100% | 8 | 90% | 24px | 4 |
+
+## Visual Effects
+
+### Liquid Gradient
+
+The liquid uses a 3-stop vertical linear gradient:
+- **Offset 0 (top)**: `#a5f3fc` (light cyan)
+- **Offset 0.5 (middle)**: Custom `color` prop
+- **Offset 1 (bottom)**: `#0c4a6e` (dark blue)
+
+### Wave Animation
+
+<ResponseField name="Period">
+  4000ms (4 seconds) - Full wave cycle duration
+  
+  Set to 0 when no valid data to freeze animation
+</ResponseField>
+
+<ResponseField name="Wave Length">
+  90% of container width - Controls wave frequency
+</ResponseField>
+
+<ResponseField name="Amplitude">
+  6-8px depending on shape - Wave height
+</ResponseField>
+
+### Border Gradient
+
+When `border={true}`, an 8px border is applied with diagonal gradient:
+- **Start (top-left)**: `#93c5fd` (light blue)
+- **End (bottom-right)**: `#1e3a8a` (dark blue)
+
+### Text Color (Dynamic)
+
+Text color automatically adjusts based on fill level for readability:
+- **Fill > 60%**: White text (`#ffffff`)
+- **Fill > 40%** (multiple mode): White text
+- **Fill ≤ 60%**: Dark blue text (`#0f2a44`)
+
+### Enter Animation
+
+- **Easing**: `cubicOut` - Smooth deceleration
+- **Duration**: 1800ms when data is valid, 0ms for no data
+
+## Usage Examples
+
+### Tank Level Indicator
+
+```jsx
+import LiquidFillPorcentaje from './components/LiquidFillPorcentaje'
+
+function TankLevelGauge({ currentLevel, capacity }) {
+  return (
+    <div style={{ width: '300px', height: '300px' }}>
+      <LiquidFillPorcentaje
+        value={currentLevel}
+        maxValue={capacity}
+        color="#3b82f6"
+        shape="circle"
+        unidad="m³"
+        border={true}
+      />
+    </div>
+  )
+}
+```
+
+### Percentage Display
+
+```jsx
+import LiquidFillPorcentaje from './components/LiquidFillPorcentaje'
+
+function TreatmentEfficiency({ efficiency }) {
+  return (
+    <div style={{ width: '250px', height: '250px' }}>
+      <LiquidFillPorcentaje
+        value={efficiency}
+        maxValue={100}
+        color="#10b981"
+        shape="roundRect"
+        porcentage={true}
+        border={true}
+      />
+    </div>
+  )
+}
+```
+
+### Rectangular Tank
+
+```jsx
+import LiquidFillPorcentaje from './components/LiquidFillPorcentaje'
+
+function RectangularTank({ volume, maxVolume }) {
+  return (
+    <div style={{ width: '200px', height: '350px' }}>
+      <LiquidFillPorcentaje
+        value={volume}
+        maxValue={maxVolume}
+        color="#06b6d4"
+        shape="rect"
+        unidad="L"
+        other="Tanque de Reserva"
+        border={true}
+      />
+    </div>
+  )
+}
+```
+
+### Chemical Reservoir
+
+```jsx
+import LiquidFillPorcentaje from './components/LiquidFillPorcentaje'
+
+function ChemicalReservoir({ level }) {
+  // Change color based on level
+  const getColor = (lvl, max) => {
+    const pct = (lvl / max) * 100
+    if (pct < 20) return '#ef4444'  // Red - Low
+    if (pct < 50) return '#f59e0b'  // Amber - Medium
+    return '#10b981'  // Green - Good
+  }
+
+  return (
+    <div style={{ width: '280px', height: '280px' }}>
+      <LiquidFillPorcentaje
+        value={level}
+        maxValue={500}
+        color={getColor(level, 500)}
+        shape="triangle"
+        unidad="kg"
+        other="Sulfato de Aluminio"
+      />
+    </div>
+  )
+}
+```
+
+### Multiple Values Display
+
+```jsx
+import LiquidFillPorcentaje from './components/LiquidFillPorcentaje'
+
+function MultiSensorTank({ tankData }) {
+  const multiData = {
+    value: { value: tankData.level },
+    maxValue: tankData.capacity,
+    secondary: {
+      varsInflux: { temperature: true },
+      value: tankData.temperature,
+      unit: "°C"
+    }
+  }
+
+  return (
+    <div style={{ width: '320px', height: '320px' }}>
+      <LiquidFillPorcentaje
+        multipleValues={multiData}
+        color="#3b82f6"
+        shape="roundRect"
+        unidad="m³"
+        porcentage={false}
+        border={true}
+      />
+    </div>
+  )
+}
+```
+
+### Dashboard Grid
+
+```jsx
+import LiquidFillPorcentaje from './components/LiquidFillPorcentaje'
+
+function TankDashboard({ tanks }) {
+  return (
+    <div style={{ 
+      display: 'grid', 
+      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+      gap: '20px'
+    }}>
+      {tanks.map((tank, idx) => (
+        <div key={idx} style={{ height: '280px' }}>
+          <h3>{tank.name}</h3>
+          <LiquidFillPorcentaje
+            value={tank.level}
+            maxValue={tank.capacity}
+            color={tank.color}
+            shape="circle"
+            unidad="m³"
+            border={true}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### No Data Handling
+
+```jsx
+import LiquidFillPorcentaje from './components/LiquidFillPorcentaje'
+
+function SafeTankGauge({ level, maxLevel, isOnline }) {
+  return (
+    <div style={{ width: '300px', height: '300px' }}>
+      <LiquidFillPorcentaje
+        value={isOnline ? level : null}  // null triggers "Sin datos"
+        maxValue={maxLevel}
+        color="#10b981"
+        shape="circle"
+        unidad="m³"
+        other={isOnline ? "Sistema Activo" : "Sistema Desconectado"}
+      />
+    </div>
+  )
+}
+```
+
+## Data Validation
+
+The component validates values using this logic:
+
+```javascript
+const isValidNumber = (v) =>
+  v !== null &&
+  v !== undefined &&
+  v !== '' &&
+  !isNaN(Number(v))
+```
+
+Invalid values result in:
+- 0% fill level
+- "Sin datos" text display
+- Gray color scheme
+- No wave animation (frozen)
+
+## Shape Selection Guide
+
+| Use Case | Recommended Shape | Reason |
+|----------|-------------------|--------|
+| Generic percentage | `circle` | Clean, familiar design |
+| Tank level | `rect` or `roundRect` | Matches physical tank shape |
+| Funnel/Hopper | `triangle` | Visual representation |
+| Highlight/Badge | `diamond` | Draws attention |
+| Location marker | `pin` | Geographic context |
+| Directional flow | `arrow` | Indicates direction |
+
+## Performance Considerations
+
+<Note>
+  **Animation Performance**: Wave animations use Canvas rendering. Limit to fewer than 10 simultaneous liquid fill components for optimal performance.
+</Note>
+
+- Wave period: 4 seconds (smooth, not CPU-intensive)
+- Frozen state when no data (0ms period)
+- Responsive to container size changes
+
+## Accessibility
+
+- Provide text alternative showing current value and percentage
+- Use semantic HTML labels for tank/container names
+- Ensure sufficient color contrast for text readability
+- Consider adding ARIA attributes for screen reader support
+
+## Responsive Design
+
+```jsx
+// Square container (recommended)
+<div style={{ width: '100%', maxWidth: '400px', aspectRatio: '1/1' }}>
+  <LiquidFillPorcentaje {...props} />
+</div>
+
+// Mobile-optimized
+<div style={{ 
+  width: '100%', 
+  maxWidth: window.innerWidth < 768 ? '250px' : '350px',
+  aspectRatio: '1/1'
+}}>
+  <LiquidFillPorcentaje {...props} />
+</div>
+```
+
+## Color Palette Suggestions
+
+| Liquid Type | Color | Hex Code |
+|------------|-------|----------|
+| Water (clean) | Cyan | `#06b6d4` |
+| Water (treated) | Blue | `#3b82f6` |
+| Chemical (safe) | Green | `#10b981` |
+| Chemical (caution) | Amber | `#f59e0b` |
+| Chemical (danger) | Red | `#ef4444` |
+| Fuel/Oil | Amber | `#f59e0b` |
+| Generic | Sky Blue | `#38bdf8` (default) |
+
+## Related Components
+
+- [Gauge](/components/charts/gauge) - For speedometer-style percentage display
+- [Boolean Chart](/components/charts/boolean-chart) - For binary state indicators
+- [Line Chart](/components/charts/line-chart) - For historical level trends
+
+## Source Reference
+
+**File**: `~/workspace/source/src/modules/Charts/components/LiquidFillPorcentaje.jsx:65`
+
+**Dependency**: `echarts-liquidfill` plugin required
+
+Built with Apache ECharts and echarts-liquidfill for the Centinela water treatment monitoring system.

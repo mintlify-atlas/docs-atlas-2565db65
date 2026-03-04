@@ -1,0 +1,270 @@
+---
+title: 'Line Chart'
+description: 'Time-series line chart component for visualizing sensor data trends with zoom, pan, and data export capabilities'
+icon: 'chart-line'
+---
+
+## Overview
+
+The Line Chart component displays time-series data from water treatment sensors, providing interactive features like zoom, pan, and data table export. Built on Apache ECharts with optimized rendering for large datasets.
+
+## Props
+
+<ParamField path="xSeries" type="number[]" required>
+  Array of timestamp values in milliseconds (Unix epoch). Defines the x-axis time points for all series.
+  
+  ```javascript
+  xSeries={[1709539200000, 1709539260000, 1709539320000]}
+  ```
+</ParamField>
+
+<ParamField path="ySeries" type="object[]" required>
+  Array of data series to plot. Each series contains configuration and values.
+  
+  **Series Object Structure:**
+  
+  <ParamField path="name" type="string" required>
+    Display name for the series (shown in legend and tooltip)
+  </ParamField>
+  
+  <ParamField path="data" type="(number | null)[]" required>
+    Array of y-values corresponding to xSeries timestamps. Use `null` for missing data points.
+  </ParamField>
+  
+  <ParamField path="color" type="string">
+    Line color (hex, RGB, or color name). Defaults to ECharts color palette.
+  </ParamField>
+  
+  <ParamField path="areaStyle" type="boolean">
+    Enable area fill below the line with 15% opacity gradient.
+  </ParamField>
+  
+  ```javascript
+  ySeries={[
+    {
+      name: 'pH Nivel',
+      data: [7.2, 7.5, null, 7.8],
+      color: '#3b82f6',
+      areaStyle: true
+    },
+    {
+      name: 'Cloro Residual',
+      data: [0.8, 0.9, 1.0, 1.1],
+      color: '#10b981'
+    }
+  ]}
+  ```
+</ParamField>
+
+<ParamField path="yType" type="string" default="value">
+  Y-axis type. Options: `'value'` (linear), `'log'` (logarithmic)
+</ParamField>
+
+<ParamField path="onZoomRange" type="function">
+  Callback triggered when user zooms or pans the chart.
+  
+  **Callback Parameters:**
+  - `startMs` (number): Start timestamp of visible range
+  - `endMs` (number): End timestamp of visible range
+  
+  ```javascript
+  onZoomRange={({ startMs, endMs }) => {
+    console.log('Viewing range:', new Date(startMs), new Date(endMs))
+  }}
+  ```
+</ParamField>
+
+<ParamField path="onRestore" type="function">
+  Callback triggered when user clicks the "Restore" button to reset zoom.
+  
+  ```javascript
+  onRestore={() => {
+    console.log('Chart restored to default view')
+  }}
+  ```
+</ParamField>
+
+## Features
+
+### Time Formatting
+
+All timestamps are automatically formatted to `America/Argentina/Buenos_Aires` timezone:
+
+- **Tooltip**: Full datetime format (DD/MM/YYYY HH:mm:ss)
+- **Axis Labels**: Time on first line, date on second line
+- **Data Table**: Full datetime format for export
+
+### Interactive Toolbox
+
+The chart includes a toolbox with the following features:
+
+<ResponseField name="dataZoom" type="tool">
+  Click and drag on chart to zoom into a specific time range. Works on both desktop and mobile.
+</ResponseField>
+
+<ResponseField name="dataView" type="tool">
+  Opens a modal displaying all chart data in a sortable table format. Read-only mode.
+</ResponseField>
+
+<ResponseField name="restore" type="tool">
+  Resets the chart to its original zoom level and triggers `onRestore` callback.
+</ResponseField>
+
+<ResponseField name="saveAsImage" type="tool">
+  Downloads the current chart view as a PNG image named "Gráfico +Agua.png".
+</ResponseField>
+
+### Zoom Controls
+
+Two zoom mechanisms are available:
+
+1. **Inside Zoom**: Pan by dragging on the chart area (touch/mouse)
+2. **Slider Zoom**: Adjust visible range using the slider at the bottom
+
+<Note>
+  Both zoom controls enforce a minimum visible range of 2 minutes to prevent over-zooming.
+</Note>
+
+### Missing Data Handling
+
+The chart gracefully handles missing data:
+
+- `null`, `undefined`, `'-'`, or `NaN` values are treated as "Sin datos" (No data)
+- Lines connect across gaps when `connectNulls: true` is set
+- Tooltips show "Sin datos" for missing points
+
+## Mobile Optimization
+
+The component automatically adapts to mobile viewports (≤768px):
+
+- Legend moves to bottom with compact spacing
+- Axis labels rotate 35° (vs 20° on desktop)
+- Reduced x-axis split points (6 vs 12)
+- Toolbox icons enlarged to 18px
+- Increased bottom margin for slider control
+
+## Usage Examples
+
+### Basic Time-Series Chart
+
+```jsx
+import LineChart from './components/LineChart'
+
+function WaterQualityChart() {
+  const timestamps = [
+    1709539200000, // 2024-03-04 10:00:00
+    1709539800000, // 2024-03-04 10:10:00
+    1709540400000, // 2024-03-04 10:20:00
+    1709541000000, // 2024-03-04 10:30:00
+  ]
+
+  const series = [
+    {
+      name: 'pH',
+      data: [7.2, 7.4, 7.3, 7.5],
+      color: '#3b82f6',
+      areaStyle: true
+    }
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '400px' }}>
+      <LineChart xSeries={timestamps} ySeries={series} />
+    </div>
+  )
+}
+```
+
+### Multi-Series with Callbacks
+
+```jsx
+import { useState } from 'react'
+import LineChart from './components/LineChart'
+
+function MultiSensorChart() {
+  const [zoomRange, setZoomRange] = useState(null)
+
+  const timestamps = generateTimestamps() // Your data source
+  
+  const series = [
+    {
+      name: 'Turbidez',
+      data: [0.5, 0.6, null, 0.7],
+      color: '#f59e0b'
+    },
+    {
+      name: 'Conductividad',
+      data: [450, 460, 455, 465],
+      color: '#8b5cf6'
+    },
+    {
+      name: 'Temperatura',
+      data: [22.5, 22.8, 23.0, 23.2],
+      color: '#ef4444',
+      areaStyle: true
+    }
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '500px' }}>
+      <LineChart
+        xSeries={timestamps}
+        ySeries={series}
+        yType="value"
+        onZoomRange={(range) => {
+          setZoomRange(range)
+          // Optionally fetch more detailed data for this range
+        }}
+        onRestore={() => {
+          setZoomRange(null)
+          // Reset to full dataset
+        }}
+      />
+    </div>
+  )
+}
+```
+
+### Logarithmic Scale
+
+```jsx
+<LineChart
+  xSeries={timestamps}
+  ySeries={[
+    {
+      name: 'Coliformes (UFC/100ml)',
+      data: [1, 10, 100, 1000],
+      color: '#dc2626'
+    }
+  ]}
+  yType="log"
+/>
+```
+
+## Performance Considerations
+
+<Note>
+  **Sampling Strategy**: The component uses `sampling: 'none'` to preserve all data points. For datasets with >10,000 points, consider downsampling server-side.
+</Note>
+
+- **Symbol Rendering**: Small symbols (2px) with `showAllSymbol: 'auto'` optimize rendering
+- **Lazy Updates**: ECharts options use `lazyUpdate: true` to batch re-renders
+- **Memoization**: All series transformations are memoized to prevent unnecessary recalculations
+
+## Accessibility
+
+- Data table view provides accessible alternative to visual chart
+- Keyboard navigation supported in toolbox controls
+- High contrast colors recommended for series differentiation
+
+## Related Components
+
+- [Bar Chart](/components/charts/bar-chart) - For categorical comparisons
+- [Gauge](/components/charts/gauge) - For single-value displays with thresholds
+- [Boolean Chart](/components/charts/boolean-chart) - For on/off state indicators
+
+## Source Reference
+
+**File**: `~/workspace/source/src/modules/Charts/components/LineChart.jsx:112`
+
+Built with Apache ECharts and optimized for Centinela water treatment monitoring.

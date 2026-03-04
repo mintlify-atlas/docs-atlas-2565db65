@@ -1,0 +1,555 @@
+---
+title: Diagram Configuration
+description: Create interactive facility diagrams with real-time data overlays for visual monitoring
+---
+
+The diagram builder allows you to create visual representations of your water treatment facility with live data overlays. Build process flow diagrams, equipment layouts, and system schematics that update in real-time.
+
+## Overview
+
+Diagrams combine:
+- Background images or colors
+- Equipment icons and symbols
+- Lines and connections
+- Text labels
+- Live variable data overlays
+- Interactive tooltips
+
+## Creating a Diagram
+
+<Steps>
+  <Step title="Access Diagram Builder">
+    Navigate to the diagram configuration module and create a new diagram.
+  </Step>
+  
+  <Step title="Set Background">
+    Configure the canvas background:
+    - Solid color (backgroundColor)
+    - Background image (backgroundImg)
+  </Step>
+  
+  <Step title="Add Elements">
+    Use the sidebar tools to add:
+    - Images (equipment, icons)
+    - Lines (pipes, connections)
+    - Polylines (complex paths)
+    - Text labels
+    - Variable displays
+  </Step>
+  
+  <Step title="Configure Variables">
+    Assign InfluxDB variables to elements and configure display options.
+  </Step>
+  
+  <Step title="Save Diagram">
+    Provide a title and save. The diagram becomes available for viewing.
+  </Step>
+</Steps>
+
+## Canvas Tools
+
+The diagram builder provides multiple drawing and editing tools:
+
+### Navigation Tools
+
+<ParamField path="Pan" type="tool">
+  Click and drag to move around the canvas. Useful for large diagrams.
+  
+  **Activation:** Click pan icon or press and hold middle mouse button
+</ParamField>
+
+<ParamField path="Zoom" type="tool">
+  Zoom in/out to view details or get overview.
+  
+  **Controls:**
+  - Zoom In button (+)
+  - Zoom Out button (-)
+  - Mouse wheel scroll
+</ParamField>
+
+### Drawing Tools
+
+<ParamField path="Line" type="tool">
+  Draw straight connections between two points.
+  
+  **Usage:**
+  1. Select line tool
+  2. Click start point
+  3. Click end point
+  4. Configure line style (color, width)
+</ParamField>
+
+<ParamField path="Polyline" type="tool">
+  Draw multi-segment paths for complex piping routes.
+  
+  **Usage:**
+  1. Select polyline tool
+  2. Click each vertex point
+  3. Press Enter to finish or right-click
+  4. Press Escape to cancel
+</ParamField>
+
+<ParamField path="Text" type="tool">
+  Add text labels to the diagram.
+  
+  **Features:**
+  - Custom font size
+  - Color selection
+  - Bold/italic styling
+  - Editable after placement
+</ParamField>
+
+<ParamField path="Image" type="tool">
+  Place equipment icons and symbols.
+  
+  **Available Images:**
+  - Pumps and motors
+  - Tanks and vessels
+  - Valves and actuators
+  - Sensors and instruments
+  - Piping components
+</ParamField>
+
+<ParamField path="Variable" type="tool">
+  Add floating variable displays that show live data.
+  
+  **Display Types:**
+  - Numeric values
+  - Percentage bars
+  - Boolean indicators
+  - Binary bit status
+</ParamField>
+
+**Source Reference:** `/src/modules/DrawDiagram/views/DrawDiagram.jsx:25-118`
+
+## Element Configuration
+
+### Image Elements
+
+Images represent equipment and can display associated variable data.
+
+```javascript
+const imageElement = {
+  id: String(Date.now()),
+  type: 'image',
+  src: '/assets/img/Diagram/pump.png',
+  x: 150,
+  y: 150,
+  width: 100,
+  height: 100,
+  draggable: true,
+  dataInflux: {
+    id: 42,                    // Variable ID
+    name: "Pump_1_Flow",
+    position: 'Centro',         // Top, Centro, Bottom
+    show: true,
+    maxValue: 100,             // For percentage displays
+    booleanColors: {           // For boolean variables
+      colorOn: '#00FF00',
+      colorOff: '#FF0000'
+    },
+    binaryBit: 0               // For binary status displays
+  }
+}
+```
+
+### Line Elements
+
+Lines represent pipes, connections, or flows.
+
+```javascript
+const lineElement = {
+  id: String(Date.now()),
+  type: 'line',
+  points: [x1, y1, x2, y2],
+  stroke: '#3b82f6',          // Color
+  strokeWidth: 5,              // Width in pixels
+  draggable: false
+}
+```
+
+**Line Style Options:**
+
+<ParamField path="stroke" type="string" default="#3b82f6">
+  Hexadecimal color code for the line
+</ParamField>
+
+<ParamField path="strokeWidth" type="number" default={5}>
+  Line thickness in pixels (1-20 recommended)
+</ParamField>
+
+### Polyline Elements
+
+Polylines create complex paths with multiple segments.
+
+```javascript
+const polylineElement = {
+  id: String(Date.now()),
+  type: 'polyline',
+  points: [x1, y1, x2, y2, x3, y3, ...],  // Multiple vertices
+  stroke: '#3b82f6',
+  strokeWidth: 5,
+  draggable: false
+}
+```
+
+**Source Reference:** `/src/modules/DrawDiagram/hooks/useDrawingTools.js`
+
+### Text Elements
+
+Text elements provide labels and annotations.
+
+```javascript
+const textElement = {
+  id: String(Date.now()),
+  type: 'text',
+  text: 'Main Feed Pump',
+  x: 100,
+  y: 50,
+  fontSize: 16,
+  fill: '#000000',            // Text color
+  fontStyle: 'normal',        // 'normal', 'bold', 'italic'
+  draggable: true
+}
+```
+
+**Text Style Options:**
+
+<ParamField path="fontSize" type="number" default={16}>
+  Font size in pixels (8-72 recommended)
+</ParamField>
+
+<ParamField path="fill" type="string" default="#000000">
+  Text color in hexadecimal
+</ParamField>
+
+<ParamField path="fontStyle" type="string" default="normal">
+  Font style: `normal`, `bold`, or `italic`
+</ParamField>
+
+## Variable Data Overlay
+
+Variables can be overlaid on diagram elements to show live values.
+
+### Position Options
+
+<Tabs>
+  <Tab title="Top">
+    Display variable value above the element.
+    
+    **Best for:** Tank levels, overhead indicators
+  </Tab>
+  
+  <Tab title="Centro (Center)">
+    Display variable value centered on the element.
+    
+    **Best for:** Embedded displays, gauge overlays
+  </Tab>
+  
+  <Tab title="Bottom">
+    Display variable value below the element.
+    
+    **Best for:** Labels, status indicators
+  </Tab>
+</Tabs>
+
+### Variable Display Types
+
+<Accordion title="Numeric Display">
+  Shows the current numeric value with optional units.
+  
+  ```javascript
+  dataInflux: {
+    id: 42,
+    name: "Flow_Rate",
+    position: "Bottom",
+    show: true
+  }
+  ```
+  
+  **Displays:** `45.2 L/min`
+</Accordion>
+
+<Accordion title="Percentage Display">
+  Shows value as a percentage of maximum.
+  
+  ```javascript
+  dataInflux: {
+    id: 15,
+    name: "Tank_Level",
+    position: "Centro",
+    show: true,
+    maxValue: 1000
+  }
+  ```
+  
+  **Displays:** `75%` (if current value is 750)
+</Accordion>
+
+<Accordion title="Boolean Display">
+  Color-coded indicator for on/off states.
+  
+  ```javascript
+  dataInflux: {
+    id: 23,
+    name: "Pump_Status",
+    position: "Top",
+    show: true,
+    booleanColors: {
+      colorOn: '#00FF00',
+      colorOff: '#FF0000'
+    }
+  }
+  ```
+  
+  **Displays:** Green dot (ON) or Red dot (OFF)
+</Accordion>
+
+<Accordion title="Binary Bit Display">
+  Shows status of a specific bit in a binary variable.
+  
+  ```javascript
+  dataInflux: {
+    id: 30,
+    name: "Status_Register",
+    position: "Centro",
+    show: true,
+    binaryBit: 3        // Monitor bit 3
+  }
+  ```
+  
+  **Use Case:** Monitoring individual flags in a status word
+</Accordion>
+
+**Source Reference:** `/src/modules/DrawDiagram/hooks/useTooltipManager.js:116`
+
+## Diagram Metadata
+
+Each diagram stores metadata for configuration:
+
+```javascript
+const diagramMetadata = {
+  id: null,                    // Set after first save
+  title: 'Main Treatment Process',
+  backgroundColor: '#ffffff',   // Canvas background color
+  backgroundImg: ''            // Optional background image URL
+}
+```
+
+**Source Reference:** `/src/modules/DrawDiagram/views/DrawDiagram.jsx:50-55`
+
+## Saving and Loading Diagrams
+
+### Save Diagram
+
+```javascript
+const diagramToSave = {
+  elements: elementsToSave,
+  circles: [],                  // Circle markers (if any)
+  diagramMetadata: {
+    title: 'Process Diagram',
+    backgroundColor: '#ffffff',
+    backgroundImg: ''
+  },
+  deleted: {                    // Track deleted items for updates
+    lines: [],
+    texts: [],
+    images: [],
+    polylines: []
+  }
+}
+
+await saveDiagramKonva(diagramToSave)
+```
+
+**Element ID Handling:**
+
+```javascript
+const elementsToSave = elements.map(el => {
+  const element = { ...el }
+  // Remove IDs for new elements
+  if (!diagramMetadata.id || newElementsIds.includes(el.id)) {
+    delete element.id
+  }
+  return element
+})
+```
+
+**Source Reference:** `/src/modules/DrawDiagram/views/DrawDiagram.jsx:192-250`
+
+### Load Diagram
+
+```javascript
+await uploadCanvaDb(diagramId, {
+  setCircles,
+  setDiagramMetadata,
+  setTool
+})
+```
+
+**Source Reference:** `/src/modules/DrawDiagram/views/DrawDiagram.jsx:372-387`
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| **Escape** | Cancel current tool/operation |
+| **Delete** | Delete selected element |
+| **Enter** | Finish polyline drawing |
+| **Right-click** | Cancel line/polyline or finish polyline |
+
+**Implementation:**
+
+```javascript
+const handleKeyDown = (e) => {
+  if (e.key === 'Escape') {
+    setTool('')
+    setTextPosition(null)
+    if (isDrawingPolyline) {
+      setIsDrawingPolyline(false)
+      setPolylinePoints([])
+    }
+  }
+  if (e.key === 'Enter' && isDrawingPolyline) {
+    finishPolyline()
+  }
+  if (e.key === 'Delete' && selectedId) {
+    handleDeleteElement(selectedId)
+  }
+}
+```
+
+**Source Reference:** `/src/modules/DrawDiagram/views/DrawDiagram.jsx:287-317`
+
+## Element Layering
+
+Control the stacking order of diagram elements:
+
+<Tabs>
+  <Tab title="Bring to Front">
+    Move selected element to the top layer.
+    
+    **Use Case:** Make important elements visible above pipes/lines
+  </Tab>
+  
+  <Tab title="Send to Back">
+    Move selected element to the bottom layer.
+    
+    **Use Case:** Push background elements behind foreground items
+  </Tab>
+</Tabs>
+
+**Controls:** Available in the top navbar when an element is selected
+
+**Source Reference:** `/src/modules/DrawDiagram/views/DrawDiagram.jsx:76-77`
+
+## Canvas Controls
+
+### Zoom Controls
+
+```javascript
+const handleZoomIn = () => {
+  const scaleBy = 1.05
+  setStageScale((prev) => prev * scaleBy)
+}
+
+const handleZoomOut = () => {
+  const scaleBy = 1.05
+  setStageScale((prev) => prev / scaleBy)
+}
+```
+
+**Source Reference:** `/src/modules/DrawDiagram/views/DrawDiagram.jsx:266-274`
+
+### Undo Function
+
+Remove the most recently added element:
+
+```javascript
+const handleUndo = () => {
+  if (elements.length === 0) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Nada para deshacer',
+      text: 'No hay elementos en el diagrama.'
+    })
+    return
+  }
+  setElements((prev) => prev.slice(0, -1))
+}
+```
+
+<Warning>
+  Undo only removes the last element. There is no redo functionality. Save frequently to preserve your work.
+</Warning>
+
+**Source Reference:** `/src/modules/DrawDiagram/views/DrawDiagram.jsx:252-264`
+
+## Best Practices
+
+<Accordion title="Diagram Organization">
+  - Create separate diagrams for different process areas
+  - Use consistent icon styles across diagrams
+  - Group related equipment visually
+  - Maintain clear flow direction (left-to-right or top-to-bottom)
+</Accordion>
+
+<Accordion title="Line Routing">
+  - Use polylines for complex piping routes
+  - Avoid crossing lines when possible
+  - Use different colors for different media (water, chemicals, air)
+  - Keep line widths proportional to actual pipe sizes
+</Accordion>
+
+<Accordion title="Variable Display">
+  - Show only critical variables on overview diagrams
+  - Position displays to avoid overlap
+  - Use consistent positioning (e.g., all flow rates at bottom)
+  - Consider percentage displays for capacity metrics
+</Accordion>
+
+<Accordion title="Performance">
+  - Limit diagrams to 50-100 elements for optimal performance
+  - Use background images sparingly (large files slow rendering)
+  - Create detail diagrams for complex areas rather than one massive diagram
+</Accordion>
+
+## Troubleshooting
+
+<Accordion title="Elements Not Appearing">
+  **Possible Causes:**
+  1. Element positioned outside visible canvas area
+  2. Element behind other elements (layer order)
+  3. Element color matches background
+  
+  **Solutions:**
+  - Use pan and zoom to search
+  - Check element layer order
+  - Select element from element list
+</Accordion>
+
+<Accordion title="Variable Data Not Updating">
+  **Checklist:**
+  1. Variable exists and has data
+  2. Variable ID correctly assigned to element
+  3. Display position configured
+  4. `show` property is `true`
+  
+  **Debug:** Check browser console for data fetch errors
+</Accordion>
+
+<Accordion title="Cannot Select Element">
+  **Causes:**
+  1. Element not draggable (lines, polylines)
+  2. Another tool is active
+  3. Element behind non-draggable element
+  
+  **Solutions:**
+  - Press Escape to cancel active tool
+  - Use layer controls to bring element forward
+  - Click element edge/corner for better selection
+</Accordion>
+
+<Note>
+  Diagrams are rendered using Konva.js, a high-performance HTML5 canvas library. All drawing operations are hardware-accelerated for smooth interaction even with complex diagrams.
+</Note>

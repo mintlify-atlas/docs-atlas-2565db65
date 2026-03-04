@@ -1,0 +1,616 @@
+---
+title: 'Diagrams'
+description: 'Create and manage interactive system diagrams with real-time data visualization'
+---
+
+## Overview
+
+Diagrams in Centinela provide visual representations of water treatment systems using Konva.js canvas rendering. They support interactive elements like lines, images, text, and polylines, all capable of displaying real-time variable data.
+
+## Diagram Elements
+
+- **Images**: Equipment icons, valves, pumps, tanks
+- **Lines**: Pipes, connections between components
+- **Polylines**: Complex pipe routing
+- **Text**: Labels and real-time value displays
+
+## List All Diagrams
+
+Retrieve all configured diagrams:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/getDiagrams" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Planta de Tratamiento - Vista Principal",
+      "status": 1,
+      "backgroundColor": "#f0f9ff",
+      "backgroundImg": ""
+    },
+    {
+      "id": 2,
+      "title": "Sistema de Filtración",
+      "status": 1,
+      "backgroundColor": "#ffffff",
+      "backgroundImg": "https://example.com/planta-fondo.jpg"
+    }
+  ]
+}
+```
+
+<ResponseField name="id" type="integer">
+  Unique diagram identifier
+</ResponseField>
+
+<ResponseField name="title" type="string">
+  Diagram name/title
+</ResponseField>
+
+<ResponseField name="status" type="integer">
+  Active status (1 = active, 0 = inactive)
+</ResponseField>
+
+<ResponseField name="backgroundColor" type="string">
+  Canvas background color (hex format)
+</ResponseField>
+
+<ResponseField name="backgroundImg" type="string">
+  Background image URL (optional)
+</ResponseField>
+
+## Get Diagram Details
+
+Retrieve complete diagram configuration including all elements:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/getObjectCanva?id=1" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Planta de Tratamiento - Vista Principal",
+      "backgroundColor": "#f0f9ff",
+      "backgroundImg": "",
+      "status": 1,
+      "images": [
+        {
+          "id": 1,
+          "name": "Tanque Principal",
+          "src": "https://storage.example.com/images/tank.svg",
+          "left": 150,
+          "top": 200,
+          "width": 80,
+          "height": 100,
+          "angle": 0,
+          "status": 1,
+          "variables": [
+            {
+              "id_influxvars": 15,
+              "show_var": true,
+              "position_var": "Bottom",
+              "max_value_var": 100,
+              "boolean_colors": {
+                "true": "#22c55e",
+                "false": "#ef4444"
+              },
+              "variable": {
+                "id": 15,
+                "name": "Nivel Tanque",
+                "unit": "%",
+                "type": "last",
+                "calc": false,
+                "binary_compressed": false,
+                "varsInflux": { /* ... */ }
+              }
+            }
+          ]
+        }
+      ],
+      "lines": [
+        {
+          "id": 1,
+          "id_influxvars": 12,
+          "points": {
+            "start": { "left": 100, "top": 150 },
+            "end": { "left": 200, "top": 150 }
+          },
+          "stroke": "#3b82f6",
+          "strokeWidth": 4,
+          "animation": 1,
+          "invertAnimation": false,
+          "status": 1,
+          "variable": {
+            "id": 12,
+            "name": "Caudal Principal",
+            "unit": "m³/h",
+            "varsInflux": { /* ... */ },
+            "position": "Center",
+            "show_var": true
+          }
+        }
+      ],
+      "polylines": [
+        {
+          "id": 1,
+          "id_influxvars": 18,
+          "points": [
+            { "left": 100, "top": 100 },
+            { "left": 150, "top": 150 },
+            { "left": 200, "top": 100 }
+          ],
+          "stroke": "#059669",
+          "strokeWidth": 3,
+          "animation": 1,
+          "invertAnimation": false,
+          "status": 1,
+          "variable": { /* ... */ }
+        }
+      ],
+      "texts": [
+        {
+          "id": 1,
+          "text": "Entrada Principal",
+          "left": 120,
+          "top": 80,
+          "sizeText": 16,
+          "colorText": "#1f2937",
+          "status": 1,
+          "id_influxvars": null
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Save Diagram
+
+Create or update a diagram with all its elements:
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/saveDiagram" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "diagram": {
+      "id": 1,
+      "title": "Sistema Principal",
+      "status": 1,
+      "backgroundColor": "#f0f9ff",
+      "backgroundImg": ""
+    },
+    "images": [
+      {
+        "id": 1,
+        "name": "Bomba 1",
+        "src": "https://storage.example.com/pump.svg",
+        "left": 100,
+        "top": 200,
+        "width": 60,
+        "height": 60,
+        "angle": 0,
+        "status": 1,
+        "variables": {
+          "Estado Bomba 1": {
+            "id_variable": 25,
+            "show": true,
+            "position": "Bottom",
+            "max_value": null,
+            "boolean_colors": {
+              "true": "#22c55e",
+              "false": "#ef4444"
+            }
+          }
+        }
+      }
+    ],
+    "lines": [
+      {
+        "id": 1,
+        "id_influxvars": 12,
+        "points": {
+          "start": { "left": 160, "top": 200 },
+          "end": { "left": 300, "top": 200 }
+        },
+        "stroke": "#3b82f6",
+        "strokeWidth": 4,
+        "animation": 1,
+        "invertAnimation": false,
+        "status": 1
+      }
+    ],
+    "polylines": [],
+    "texts": [
+      {
+        "id": 1,
+        "text": "Línea Principal",
+        "left": 220,
+        "top": 180,
+        "sizeText": 14,
+        "colorText": "#1f2937",
+        "status": 1,
+        "id_influxvars": null
+      }
+    ],
+    "deleted": {
+      "images": [],
+      "lines": [],
+      "polylines": [],
+      "texts": []
+    }
+  }'
+```
+
+### Diagram Object
+
+<ParamField body="diagram.id" type="integer">
+  Diagram ID (omit for new diagrams)
+</ParamField>
+
+<ParamField body="diagram.title" type="string" required>
+  Diagram title
+</ParamField>
+
+<ParamField body="diagram.status" type="integer" required>
+  Status (1 = active)
+</ParamField>
+
+<ParamField body="diagram.backgroundColor" type="string">
+  Canvas background color
+</ParamField>
+
+<ParamField body="diagram.backgroundImg" type="string">
+  Background image URL
+</ParamField>
+
+### Image Elements
+
+<ParamField body="images[].id" type="integer">
+  Image ID (omit for new images)
+</ParamField>
+
+<ParamField body="images[].name" type="string">
+  Image name
+</ParamField>
+
+<ParamField body="images[].src" type="string" required>
+  Image source URL
+</ParamField>
+
+<ParamField body="images[].left" type="number" required>
+  X coordinate
+</ParamField>
+
+<ParamField body="images[].top" type="number" required>
+  Y coordinate
+</ParamField>
+
+<ParamField body="images[].width" type="number" required>
+  Image width in pixels
+</ParamField>
+
+<ParamField body="images[].height" type="number" required>
+  Image height in pixels
+</ParamField>
+
+<ParamField body="images[].angle" type="number">
+  Rotation angle in degrees
+</ParamField>
+
+<ParamField body="images[].variables" type="object">
+  Associated variables configuration
+</ParamField>
+
+### Line Elements
+
+<ParamField body="lines[].points" type="object" required>
+  Start and end points: `{start: {left, top}, end: {left, top}}`
+</ParamField>
+
+<ParamField body="lines[].stroke" type="string" required>
+  Line color (hex)
+</ParamField>
+
+<ParamField body="lines[].strokeWidth" type="number" required>
+  Line width in pixels
+</ParamField>
+
+<ParamField body="lines[].animation" type="integer">
+  Enable animation (1 = yes, 0 = no)
+</ParamField>
+
+<ParamField body="lines[].invertAnimation" type="boolean">
+  Reverse animation direction
+</ParamField>
+
+<ParamField body="lines[].id_influxvars" type="integer">
+  Associated variable ID (optional)
+</ParamField>
+
+### Polyline Elements
+
+<ParamField body="polylines[].points" type="array" required>
+  Array of points: `[{left, top}, {left, top}, ...]`
+</ParamField>
+
+<ParamField body="polylines[].stroke" type="string" required>
+  Line color
+</ParamField>
+
+<ParamField body="polylines[].strokeWidth" type="number" required>
+  Line width
+</ParamField>
+
+### Text Elements
+
+<ParamField body="texts[].text" type="string" required>
+  Text content
+</ParamField>
+
+<ParamField body="texts[].left" type="number" required>
+  X coordinate
+</ParamField>
+
+<ParamField body="texts[].top" type="number" required>
+  Y coordinate
+</ParamField>
+
+<ParamField body="texts[].sizeText" type="number">
+  Font size
+</ParamField>
+
+<ParamField body="texts[].colorText" type="string">
+  Text color
+</ParamField>
+
+<ParamField body="texts[].id_influxvars" type="integer">
+  Variable ID to display value (optional)
+</ParamField>
+
+### Deleted Elements
+
+<ParamField body="deleted" type="object">
+  Arrays of element IDs to delete: `{images: [1,2], lines: [3], ...}`
+</ParamField>
+
+## Change Diagram Status
+
+Activate or deactivate a diagram:
+
+```bash cURL
+curl -X PUT "https://masagua.cooptech.com.ar/api/changeStatusDiagram" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 1,
+    "status": 1
+  }'
+```
+
+<ParamField body="id" type="integer" required>
+  Diagram ID
+</ParamField>
+
+<ParamField body="status" type="integer" required>
+  Current status (will be toggled)
+</ParamField>
+
+## Get Real-Time Variable Data
+
+Fetch current values for diagram variables:
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/multipleDataInflux" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "dataInflux": {
+        "id": 15,
+        "name": "Nivel Tanque",
+        "unit": "%",
+        "varsInflux": { /* ... */ }
+      }
+    }
+  ]'
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "15": 75.5
+  }
+}
+```
+
+## Variable Display Options
+
+### Position
+
+Where to display the variable value relative to the element:
+
+- `Top` - Above the element
+- `Bottom` - Below the element
+- `Left` - Left of the element
+- `Right` - Right of the element
+- `Center` - Centered on the element
+
+### Boolean Colors
+
+For boolean variables, specify colors for each state:
+
+```json
+{
+  "boolean_colors": {
+    "true": "#22c55e",
+    "false": "#ef4444"
+  }
+}
+```
+
+### Percentage Display
+
+For variables with a maximum value, enable percentage calculation:
+
+```json
+{
+  "max_value_var": 100,
+  "calculatePercentage": true
+}
+```
+
+### Binary Compressed Variables
+
+Display specific bits from compressed variables:
+
+```json
+{
+  "binary_compressed": true,
+  "id_bit": 2,
+  "bit_name": "Bomba 2"
+}
+```
+
+## Animation
+
+Lines and polylines support animated flow visualization:
+
+<ParamField body="animation" type="integer">
+  Enable animation (1 = enabled)
+</ParamField>
+
+<ParamField body="invertAnimation" type="boolean">
+  Reverse flow direction (useful for return lines)
+</ParamField>
+
+## Example: Complete Diagram
+
+```json
+{
+  "diagram": {
+    "title": "Sistema de Bombeo",
+    "status": 1,
+    "backgroundColor": "#f0f9ff",
+    "backgroundImg": ""
+  },
+  "images": [
+    {
+      "name": "Tanque Entrada",
+      "src": "https://storage.example.com/tank.svg",
+      "left": 50,
+      "top": 100,
+      "width": 80,
+      "height": 100,
+      "angle": 0,
+      "status": 1,
+      "variables": {
+        "Nivel Tanque Entrada": {
+          "id_variable": 10,
+          "show": true,
+          "position": "Bottom",
+          "max_value": 100,
+          "boolean_colors": {}
+        }
+      }
+    },
+    {
+      "name": "Bomba Principal",
+      "src": "https://storage.example.com/pump.svg",
+      "left": 200,
+      "top": 120,
+      "width": 60,
+      "height": 60,
+      "angle": 0,
+      "status": 1,
+      "variables": {
+        "Estado Bomba": {
+          "id_variable": 25,
+          "show": true,
+          "position": "Right",
+          "max_value": null,
+          "boolean_colors": {
+            "true": "#22c55e",
+            "false": "#ef4444"
+          }
+        }
+      }
+    }
+  ],
+  "lines": [
+    {
+      "id_influxvars": 12,
+      "points": {
+        "start": { "left": 130, "top": 150 },
+        "end": { "left": 200, "top": 150 }
+      },
+      "stroke": "#3b82f6",
+      "strokeWidth": 6,
+      "animation": 1,
+      "invertAnimation": false,
+      "status": 1
+    }
+  ],
+  "texts": [
+    {
+      "text": "Línea de Impulsión",
+      "left": 140,
+      "top": 130,
+      "sizeText": 14,
+      "colorText": "#1f2937",
+      "status": 1,
+      "id_influxvars": null
+    }
+  ],
+  "polylines": [],
+  "deleted": {
+    "images": [],
+    "lines": [],
+    "polylines": [],
+    "texts": []
+  }
+}
+```
+
+## Best Practices
+
+<Note>
+- Use consistent coordinate systems for alignment
+- Group related elements logically
+- Keep variable associations clear
+- Use animation sparingly for performance
+- Set appropriate polling intervals for real-time updates
+</Note>
+
+<Warning>
+Large diagrams with many animated elements may impact performance. Consider splitting into multiple diagrams or disabling animations for non-critical elements.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Variables" icon="code" href="/api/variables">
+    Configure variables for diagrams
+  </Card>
+  
+  <Card title="Charts" icon="chart-line" href="/api/charts">
+    Create complementary charts
+  </Card>
+</CardGroup>

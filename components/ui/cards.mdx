@@ -1,0 +1,299 @@
+---
+title: 'CardCustom'
+description: 'Lightweight card wrapper component for consistent container styling in the Centinela monitoring system'
+icon: 'square'
+---
+
+## Overview
+
+The `CardCustom` component is a simple, flexible container component built on Material-UI's `Box` that provides consistent card styling across the application. It supports dark mode and custom styling through className props.
+
+## Import
+
+```jsx
+import CardCustom from '../../../components/CardCustom'
+```
+
+## Props
+
+<ParamField path="children" type="ReactNode" required>
+  The content to be rendered inside the card container.
+</ParamField>
+
+<ParamField path="className" type="string">
+  Additional CSS classes to customize the card appearance. Merged with default styling.
+  
+  ```jsx
+  className="p-4 rounded-lg border-2 border-blue-500"
+  ```
+</ParamField>
+
+## Default Styling
+
+The component applies the following default styles:
+- `bg-white` - White background in light mode
+- `dark:bg-zinc-700` - Dark zinc background in dark mode
+- `shadow-[2px_3px_5px_0px_#0000001f]` - Custom shadow effect
+
+## Usage Examples
+
+### Basic Card
+
+```jsx
+<CardCustom>
+  <h2>Card Title</h2>
+  <p>Card content goes here</p>
+</CardCustom>
+```
+
+### Card with Custom Styling
+
+```jsx
+<CardCustom className="p-4 rounded-lg">
+  <Typography variant="h6">Configuration Panel</Typography>
+  <TextField label="Setting" />
+</CardCustom>
+```
+
+### Filter Card (from ChartsTable.jsx)
+
+```jsx
+<CardCustom className="p-2 my-2 rounded-md bg-grey-100">
+  <form onSubmit={handleSubmit(onSubmit)}>
+    <FormControl fullWidth>
+      <InputLabel>Tipo</InputLabel>
+      <Select>
+        <MenuItem value="">Todos</MenuItem>
+        {/* More options */}
+      </Select>
+    </FormControl>
+    
+    <Button type="submit" variant="contained">
+      Filtrar
+    </Button>
+  </form>
+</CardCustom>
+```
+
+### Nested Configuration Card
+
+```jsx
+<CardCustom className="p-2 !bg-slate-50 border-2 border-slate-100 rounded-md shadow-sm">
+  <FormControlLabel
+    control={<Checkbox checked={enabled} onChange={handleToggle} />}
+    label="Mostrar variable secundaria"
+  />
+  
+  {enabled && (
+    <div className="!bg-white">
+      <SelectVars label="Variable secundaria" />
+    </div>
+  )}
+</CardCustom>
+```
+
+### Content Wrapper Card
+
+```jsx
+<CardCustom className="p-6">
+  <div className="flex flex-col gap-4">
+    <Typography variant="h5">Dashboard Settings</Typography>
+    <Divider />
+    <TextField label="Dashboard Name" fullWidth />
+    <TextField label="Description" fullWidth multiline rows={3} />
+  </div>
+</CardCustom>
+```
+
+## Common Use Cases
+
+<Tabs>
+  <Tab title="Form Container">
+    ```jsx
+    import CardCustom from '../../../components/CardCustom'
+    import { TextField, Button } from '@mui/material'
+
+    function ConfigForm() {
+      return (
+        <CardCustom className="p-4 rounded-lg">
+          <form className="flex flex-col gap-3">
+            <TextField label="Name" fullWidth />
+            <TextField label="Value" fullWidth />
+            <Button variant="contained" type="submit">
+              Save
+            </Button>
+          </form>
+        </CardCustom>
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Filter Panel">
+    ```jsx
+    import CardCustom from '../../../components/CardCustom'
+    import { Select, MenuItem, FormControl } from '@mui/material'
+
+    function FilterPanel() {
+      return (
+        <CardCustom className="p-2 my-2 rounded-md">
+          <div className="flex gap-2">
+            <FormControl size="small">
+              <Select>
+                <MenuItem value="all">Todos</MenuItem>
+                <MenuItem value="active">Activos</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Button variant="contained" size="small">
+              Filtrar
+            </Button>
+          </div>
+        </CardCustom>
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Information Display">
+    ```jsx
+    import CardCustom from '../../../components/CardCustom'
+
+    function InfoCard({ title, value, unit }) {
+      return (
+        <CardCustom className="p-4 rounded-lg">
+          <h3 className="text-sm text-gray-600">{title}</h3>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-bold">{value}</span>
+            <span className="text-sm text-gray-500">{unit}</span>
+          </div>
+        </CardCustom>
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Collapsible Section">
+    ```jsx
+    import CardCustom from '../../../components/CardCustom'
+    import { useState } from 'react'
+    import { Checkbox, FormControlLabel } from '@mui/material'
+
+    function CollapsibleConfig() {
+      const [enabled, setEnabled] = useState(false)
+
+      return (
+        <CardCustom className="p-2 !bg-slate-50 border-2 border-slate-100 rounded-md shadow-sm">
+          <FormControlLabel
+            control={
+              <Checkbox 
+                checked={enabled} 
+                onChange={(e) => setEnabled(e.target.checked)} 
+              />
+            }
+            label="Enable Advanced Options"
+          />
+          
+          {enabled && (
+            <div className="!bg-white mt-2 p-3 rounded">
+              {/* Advanced configuration options */}
+            </div>
+          )}
+        </CardCustom>
+      )
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Component Source
+
+Location: `~/workspace/source/src/components/CardCustom/index.jsx`
+
+## Dark Mode Support
+
+The component automatically adapts to dark mode:
+
+```jsx
+// Light mode: white background
+// Dark mode: zinc-700 background
+
+<CardCustom>
+  <p>This card adapts to the current theme</p>
+</CardCustom>
+```
+
+<Note>
+  CardCustom uses Material-UI's Box component as its foundation, inheriting all Box capabilities including the sx prop for advanced styling if needed.
+</Note>
+
+## Styling Tips
+
+### Override Background Color
+
+Use the `!important` flag when overriding default colors:
+
+```jsx
+<CardCustom className="!bg-slate-50">
+  {/* Content */}
+</CardCustom>
+```
+
+### Add Borders
+
+```jsx
+<CardCustom className="border-2 border-slate-200 rounded-md">
+  {/* Content */}
+</CardCustom>
+```
+
+### Adjust Padding
+
+```jsx
+<CardCustom className="p-6">
+  {/* More padding */}
+</CardCustom>
+
+<CardCustom className="p-2">
+  {/* Less padding */}
+</CardCustom>
+```
+
+### Responsive Spacing
+
+```jsx
+<CardCustom className="p-2 md:p-4 lg:p-6">
+  {/* Responsive padding that increases with screen size */}
+</CardCustom>
+```
+
+## Best Practices
+
+1. **Consistent Spacing**: Use Tailwind spacing classes for consistent padding/margin
+2. **Semantic Grouping**: Group related content within cards
+3. **Nested Cards**: Use different background colors for nested cards to create visual hierarchy
+4. **Responsive Design**: Adjust card padding and layout for different screen sizes
+5. **Accessibility**: Ensure sufficient contrast between card background and content
+
+## Integration with Material-UI
+
+CardCustom wraps Material-UI's Box component, so you can use all Material-UI theming features:
+
+```jsx
+import { useTheme } from '@mui/material'
+
+function ThemedCard() {
+  const theme = useTheme()
+  
+  return (
+    <CardCustom 
+      className="p-4"
+      sx={{ 
+        borderLeft: `4px solid ${theme.palette.primary.main}` 
+      }}
+    >
+      {/* Content */}
+    </CardCustom>
+  )
+}
+```

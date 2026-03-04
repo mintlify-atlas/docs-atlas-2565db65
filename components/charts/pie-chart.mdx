@@ -1,0 +1,381 @@
+---
+title: 'Pie Chart'
+description: 'Doughnut-style pie chart component for visualizing proportional data and category distributions'
+icon: 'chart-pie'
+---
+
+## Overview
+
+The Pie Chart (Doughnut Chart) component displays categorical data as proportional slices of a circle. Ideal for showing distribution percentages, category breakdowns, or part-to-whole relationships in water treatment monitoring.
+
+## Props
+
+<ParamField path="data" type="object[]" required>
+  Array of data objects, where each object represents a slice of the pie.
+  
+  **Data Object Structure:**
+  
+  <ParamField path="name" type="string" required>
+    Label for the category/slice (displayed in legend and tooltip)
+  </ParamField>
+  
+  <ParamField path="value" type="number" required>
+    Numeric value for the slice (determines size relative to total)
+  </ParamField>
+  
+  ```javascript
+  data={[
+    { name: 'Planta Norte', value: 450 },
+    { name: 'Planta Sur', value: 380 },
+    { name: 'Planta Este', value: 520 },
+    { name: 'Planta Oeste', value: 290 }
+  ]}
+  ```
+</ParamField>
+
+## Chart Configuration
+
+### Tooltip
+
+**Trigger**: `'item'` - Shows tooltip when hovering over individual slices
+
+**Format**: `'{b}: {c} ({d}%)'`
+- `{b}`: Category name
+- `{c}`: Absolute value
+- `{d}`: Percentage of total
+
+Example tooltip output: `"Planta Norte: 450 (27.6%)"`
+
+### Legend
+
+**Orientation**: Horizontal
+
+**Position**: Center-aligned at top
+
+**Function**: Click legend items to show/hide corresponding slices
+
+### Pie Series Configuration
+
+<ParamField path="type">
+  `'pie'` - Renders as a circular pie chart
+</ParamField>
+
+<ParamField path="radius">
+  `['0%', '70%']` - Creates a doughnut chart (0% inner radius, 70% outer radius)
+  
+  <Note>
+    To create a full pie chart (no hole), set to `['0%', '100%']`. To increase the doughnut hole, increase the first value (e.g., `['40%', '70%']`).
+  </Note>
+</ParamField>
+
+<ParamField path="emphasis">
+  Visual effect when hovering over a slice:
+  - **Shadow Blur**: 10px
+  - **Shadow Color**: `rgba(0, 0, 0, 0.5)`
+  - **Shadow Offset**: 0 (centered)
+</ParamField>
+
+## Configuration Schema
+
+The component can be configured using the Doughnut Chart schema:
+
+```javascript
+// From DoughnutChartschema.js
+{
+  title: string (min 1 char, required),
+  categoryName: string (min 1 char, required),
+  colorCategory: string (min 1 char, required),
+  idVar: number (min 1, required),
+  lastValue: boolean (required),
+  startDate: string (required if lastValue is false),
+  endDate: string (required if lastValue is false)
+}
+```
+
+<Note>
+  **Date Range Logic**: If `lastValue` is `false`, both `startDate` and `endDate` become required fields for querying historical data.
+</Note>
+
+## Usage Examples
+
+### Water Production by Plant
+
+```jsx
+import DoughnutChart from './components/DoughnutChart'
+
+function ProductionDistribution() {
+  const productionData = [
+    { name: 'Planta Norte', value: 4500 },
+    { name: 'Planta Sur', value: 3800 },
+    { name: 'Planta Este', value: 5200 },
+    { name: 'Planta Oeste', value: 2900 }
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '400px' }}>
+      <DoughnutChart data={productionData} />
+    </div>
+  )
+}
+```
+
+### Chemical Consumption Breakdown
+
+```jsx
+import DoughnutChart from './components/DoughnutChart'
+
+function ChemicalUsageChart() {
+  const chemicalData = [
+    { name: 'Cloro', value: 450 },
+    { name: 'Sulfato de Aluminio', value: 1200 },
+    { name: 'Cal', value: 800 },
+    { name: 'Polímero', value: 150 },
+    { name: 'Carbón Activado', value: 300 }
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '450px' }}>
+      <DoughnutChart data={chemicalData} />
+    </div>
+  )
+}
+```
+
+### Water Source Distribution
+
+```jsx
+import DoughnutChart from './components/DoughnutChart'
+
+function WaterSourceChart() {
+  const sourceData = [
+    { name: 'Río Paraná', value: 6500 },
+    { name: 'Pozos Profundos', value: 2200 },
+    { name: 'Reservorio Sur', value: 1800 },
+    { name: 'Otras Fuentes', value: 500 }
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '400px' }}>
+      <DoughnutChart data={sourceData} />
+    </div>
+  )
+}
+```
+
+### Water Quality Classification
+
+```jsx
+import DoughnutChart from './components/DoughnutChart'
+
+function QualityClassificationChart() {
+  const qualityData = [
+    { name: 'Excelente', value: 85 },
+    { name: 'Buena', value: 62 },
+    { name: 'Aceptable', value: 28 },
+    { name: 'Regular', value: 15 },
+    { name: 'Deficiente', value: 5 }
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '400px' }}>
+      <DoughnutChart data={qualityData} />
+    </div>
+  )
+}
+```
+
+### Treatment Process Distribution
+
+```jsx
+import DoughnutChart from './components/DoughnutChart'
+
+function ProcessTimeChart() {
+  // Time spent in each treatment stage (minutes)
+  const processData = [
+    { name: 'Coagulación', value: 15 },
+    { name: 'Floculación', value: 30 },
+    { name: 'Sedimentación', value: 120 },
+    { name: 'Filtración', value: 45 },
+    { name: 'Desinfección', value: 10 }
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '450px' }}>
+      <h3>Tiempo por Proceso (minutos)</h3>
+      <DoughnutChart data={processData} />
+    </div>
+  )
+}
+```
+
+### Empty Data Handling
+
+```jsx
+import DoughnutChart from './components/DoughnutChart'
+
+function DynamicPieChart({ data }) {
+  // Handle empty or undefined data gracefully
+  const chartData = data && data.length > 0 ? data : []
+
+  return (
+    <div style={{ width: '100%', height: '400px' }}>
+      {chartData.length === 0 ? (
+        <div style={{ textAlign: 'center', paddingTop: '150px' }}>
+          <p>No hay datos disponibles</p>
+        </div>
+      ) : (
+        <DoughnutChart data={chartData} />
+      )}
+    </div>
+  )
+}
+```
+
+## Data Format Requirements
+
+<Note>
+  **Minimum Data**: At least one data object with `name` and `value` properties is required for rendering.
+</Note>
+
+### Valid Data Examples
+
+```javascript
+// Single category
+const singleCategory = [
+  { name: 'Category A', value: 100 }
+]
+
+// Multiple categories
+const multipleCategories = [
+  { name: 'Cat 1', value: 25 },
+  { name: 'Cat 2', value: 50 },
+  { name: 'Cat 3', value: 75 },
+  { name: 'Cat 4', value: 100 }
+]
+
+// With zero values (will show in legend but not as slice)
+const withZeros = [
+  { name: 'Active', value: 100 },
+  { name: 'Inactive', value: 0 },
+  { name: 'Pending', value: 25 }
+]
+```
+
+## Customization Options
+
+Extend the component by modifying these options:
+
+### Color Scheme
+
+```javascript
+// Add custom colors to series
+series: [
+  {
+    type: 'pie',
+    radius: ['0%', '70%'],
+    data: data,
+    itemStyle: {
+      color: (params) => {
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+        return colors[params.dataIndex % colors.length]
+      }
+    }
+  }
+]
+```
+
+### Label Display
+
+```javascript
+// Show percentages on slices
+series: [
+  {
+    type: 'pie',
+    radius: ['0%', '70%'],
+    data: data,
+    label: {
+      show: true,
+      formatter: '{b}: {d}%'
+    }
+  }
+]
+```
+
+### Rose Type
+
+```javascript
+// Create a rose (nightingale) chart
+series: [
+  {
+    type: 'pie',
+    radius: ['0%', '70%'],
+    roseType: 'area',  // or 'radius'
+    data: data
+  }
+]
+```
+
+## Percentage Calculation
+
+Percentages are automatically calculated based on the sum of all values:
+
+```javascript
+// Example: Total = 100
+data = [
+  { name: 'A', value: 25 },  // 25%
+  { name: 'B', value: 50 },  // 50%
+  { name: 'C', value: 25 }   // 25%
+]
+```
+
+## Interactive Features
+
+- **Hover Effect**: Slices expand slightly with shadow effect
+- **Legend Toggle**: Click legend items to show/hide slices
+- **Tooltip**: Displays category name, value, and percentage on hover
+
+## Responsive Behavior
+
+The chart automatically adapts to container size:
+
+```jsx
+// Responsive container
+<div style={{ width: '100%', height: 'auto', minHeight: '300px' }}>
+  <DoughnutChart data={data} />
+</div>
+
+// Mobile-optimized
+<div style={{ 
+  width: '100%', 
+  height: window.innerWidth < 768 ? '300px' : '450px' 
+}}>
+  <DoughnutChart data={data} />
+</div>
+```
+
+## Accessibility
+
+- Use descriptive category names in the `name` field
+- Include units in tooltips when relevant (e.g., "450 m³")
+- Provide a text-based data table alternative for screen readers
+- Ensure sufficient color contrast between adjacent slices
+
+## Performance Considerations
+
+- Recommended maximum: 20 categories for optimal readability
+- Large numbers of small slices may be difficult to distinguish
+- Consider grouping small categories into "Otros" (Others) category
+
+## Related Components
+
+- [Bar Chart](/components/charts/bar-chart) - For comparing absolute values across categories
+- [Gauge](/components/charts/gauge) - For single percentage display
+- [Liquid Fill](/components/charts/liquid-fill) - For single percentage with visual fill
+
+## Source Reference
+
+**File**: `~/workspace/source/src/modules/Charts/components/DoughnutChart.jsx:4`
+
+**Schema**: `~/workspace/source/src/modules/Charts/schemas/DoughnutChartSchema.js`
+
+Built with Apache ECharts for the Centinela water treatment monitoring system.

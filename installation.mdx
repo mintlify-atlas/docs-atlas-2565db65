@@ -1,0 +1,642 @@
+---
+title: Installation Guide
+description: Complete installation instructions for the Centinela desktop application on Windows, macOS, and Linux
+---
+
+# Installation Guide
+
+Centinela is available as both a web application and a native desktop application. This guide covers installation of the desktop application, which offers enhanced performance and offline capabilities.
+
+<Info>
+  The web version requires no installation - simply navigate to your Centinela URL in any modern browser. This guide is for users who want to install the native desktop application.
+</Info>
+
+## System Requirements
+
+Before installing, ensure your system meets these requirements:
+
+### Minimum Requirements
+
+<Tabs>
+  <Tab title="Windows">
+    - **OS**: Windows 10 or later (64-bit)
+    - **RAM**: 4 GB minimum, 8 GB recommended
+    - **Disk Space**: 500 MB free space
+    - **Display**: 1024x768 minimum resolution
+    - **Internet**: Broadband connection for real-time data
+  </Tab>
+  
+  <Tab title="macOS">
+    - **OS**: macOS 10.15 (Catalina) or later
+    - **RAM**: 4 GB minimum, 8 GB recommended
+    - **Disk Space**: 500 MB free space
+    - **Display**: 1024x768 minimum resolution
+    - **Internet**: Broadband connection for real-time data
+  </Tab>
+  
+  <Tab title="Linux">
+    - **OS**: Ubuntu 20.04+, Debian 11+, Fedora 35+, or equivalent
+    - **RAM**: 4 GB minimum, 8 GB recommended
+    - **Disk Space**: 500 MB free space
+    - **Display**: 1024x768 minimum resolution
+    - **Internet**: Broadband connection for real-time data
+  </Tab>
+</Tabs>
+
+<Note>
+  For optimal experience, we recommend a monitor with at least 1920x1080 resolution when viewing process diagrams and multiple charts simultaneously.
+</Note>
+
+## Desktop Application Overview
+
+The Centinela desktop application is built with Tauri, providing:
+
+```json tauri.conf.json
+{
+  "productName": "Mas Agua",
+  "version": "1.0.4",
+  "identifier": "com.masagua.desktop",
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "deb", "rpm", "appimage", "dmg"]
+  }
+}
+```
+
+<CardGroup cols={3}>
+  <Card title="Native Performance" icon="rocket">
+    Faster startup and smoother interactions than web browsers
+  </Card>
+  <Card title="Auto-Updates" icon="arrows-rotate">
+    Automatic updates ensure you always have the latest features
+  </Card>
+  <Card title="System Integration" icon="desktop">
+    Better integration with your operating system
+  </Card>
+</CardGroup>
+
+## Installation Methods
+
+### Option 1: Web Access (No Installation)
+
+The simplest way to use Centinela:
+
+<Steps>
+  <Step title="Open Your Browser">
+    Launch any modern browser (Chrome, Firefox, Safari, Edge)
+  </Step>
+  
+  <Step title="Navigate to Centinela">
+    Enter your Centinela instance URL (provided by your administrator)
+    
+    Example: `https://centinela.yourcompany.com`
+  </Step>
+  
+  <Step title="Login">
+    Enter your credentials and start monitoring
+    
+    <Info>
+      We recommend bookmarking the URL for quick access
+    </Info>
+  </Step>
+</Steps>
+
+<Note>
+  Web access requires a modern browser:
+  - Chrome 90+
+  - Firefox 88+
+  - Safari 14+
+  - Edge 90+
+</Note>
+
+### Option 2: Desktop Application Installation
+
+For the best experience, install the native desktop application:
+
+<Tabs>
+  <Tab title="Windows Installation">
+    ### Windows Desktop App
+    
+    <Steps>
+      <Step title="Download the Installer">
+        Download the `.msi` installer from your administrator or the Centinela releases page.
+        
+        File format: `Mas-Agua_1.0.4_x64_en-US.msi`
+      </Step>
+      
+      <Step title="Run the Installer">
+        1. Double-click the downloaded `.msi` file
+        2. If prompted by Windows SmartScreen, click "More info" then "Run anyway"
+        3. Follow the installation wizard
+        4. Choose installation directory (default: `C:\Program Files\Mas Agua`)
+        5. Click "Install" to begin installation
+        
+        <Warning>
+          You may need administrator privileges to install. Right-click the installer and select "Run as administrator" if needed.
+        </Warning>
+      </Step>
+      
+      <Step title="Launch the Application">
+        - Find "Mas Agua" in your Start Menu
+        - Or double-click the desktop shortcut (if created during installation)
+        - The application window will open at 1024x768 and maximize automatically
+        
+        ```json
+        // Default window configuration
+        {
+          "width": 1024,
+          "height": 768,
+          "resizable": true,
+          "maximized": true
+        }
+        ```
+      </Step>
+      
+      <Step title="First Launch Setup">
+        On first launch:
+        1. The app will check for updates automatically
+        2. Enter your server connection details (if not pre-configured)
+        3. Login with your credentials
+      </Step>
+    </Steps>
+    
+    ### Troubleshooting Windows Installation
+    
+    <AccordionGroup>
+      <Accordion title="Installation blocked by Windows Defender">
+        If Windows Defender blocks the installation:
+        1. Click "More info" on the SmartScreen prompt
+        2. Click "Run anyway"
+        3. This is normal for new applications without widespread distribution
+      </Accordion>
+      
+      <Accordion title="Missing .NET or Visual C++ Runtime">
+        The installer may require:
+        - .NET Framework 4.7.2 or later
+        - Visual C++ Redistributable 2015-2022
+        
+        These are usually included, but can be downloaded from Microsoft if needed.
+      </Accordion>
+    </AccordionGroup>
+  </Tab>
+  
+  <Tab title="macOS Installation">
+    ### macOS Desktop App
+    
+    <Steps>
+      <Step title="Download the DMG">
+        Download the `.dmg` file from your administrator or the Centinela releases page.
+        
+        File format: `Mas-Agua_1.0.4_universal.dmg`
+      </Step>
+      
+      <Step title="Open the DMG">
+        1. Double-click the downloaded `.dmg` file
+        2. A new window will open showing the application
+      </Step>
+      
+      <Step title="Install the Application">
+        1. Drag the "Mas Agua" icon to your Applications folder
+        2. Wait for the copy to complete
+        3. Eject the DMG by clicking the eject button in Finder
+      </Step>
+      
+      <Step title="Launch the Application">
+        1. Open your Applications folder
+        2. Double-click "Mas Agua"
+        3. If you see a security warning ("Mas Agua is from an unidentified developer"):
+           - Right-click the app
+           - Select "Open"
+           - Click "Open" in the confirmation dialog
+           - This only needs to be done once
+        
+        <Warning>
+          macOS Gatekeeper may block the first launch. Use the right-click method above to bypass this security check.
+        </Warning>
+      </Step>
+    </Steps>
+    
+    ### Troubleshooting macOS Installation
+    
+    <AccordionGroup>
+      <Accordion title="App is damaged and can't be opened">
+        This error can occur due to Gatekeeper quarantine. Fix it with:
+        ```bash
+        xattr -cr "/Applications/Mas Agua.app"
+        ```
+        Then try opening the app again.
+      </Accordion>
+      
+      <Accordion title="Allow app in System Preferences">
+        If the app won't open:
+        1. Open System Preferences > Security & Privacy
+        2. Click the "General" tab
+        3. You should see a message about "Mas Agua"
+        4. Click "Open Anyway"
+      </Accordion>
+    </AccordionGroup>
+  </Tab>
+  
+  <Tab title="Linux Installation">
+    ### Linux Desktop App
+    
+    Centinela provides multiple Linux package formats:
+    
+    <CodeGroup>
+    ```bash Debian/Ubuntu (.deb)
+    # Download the .deb file
+    wget https://your-server.com/mas-agua_1.0.4_amd64.deb
+    
+    # Install using apt
+    sudo apt install ./mas-agua_1.0.4_amd64.deb
+    
+    # Or using dpkg
+    sudo dpkg -i mas-agua_1.0.4_amd64.deb
+    sudo apt-get install -f  # Install dependencies if needed
+    ```
+    
+    ```bash Fedora/RHEL (.rpm)
+    # Download the .rpm file
+    wget https://your-server.com/mas-agua-1.0.4-1.x86_64.rpm
+    
+    # Install using dnf
+    sudo dnf install ./mas-agua-1.0.4-1.x86_64.rpm
+    
+    # Or using rpm
+    sudo rpm -ivh mas-agua-1.0.4-1.x86_64.rpm
+    ```
+    
+    ```bash AppImage (Universal)
+    # Download the AppImage
+    wget https://your-server.com/Mas-Agua_1.0.4_amd64.AppImage
+    
+    # Make it executable
+    chmod +x Mas-Agua_1.0.4_amd64.AppImage
+    
+    # Run the application
+    ./Mas-Agua_1.0.4_amd64.AppImage
+    ```
+    </CodeGroup>
+    
+    <Steps>
+      <Step title="Choose Your Package Format">
+        Select the appropriate package for your distribution:
+        - **Debian/Ubuntu**: `.deb` package
+        - **Fedora/RHEL/openSUSE**: `.rpm` package
+        - **Other distributions**: `.AppImage` (universal)
+      </Step>
+      
+      <Step title="Install Dependencies">
+        Most dependencies are bundled, but you may need:
+        ```bash
+        # Debian/Ubuntu
+        sudo apt install libwebkit2gtk-4.0-37 libgtk-3-0
+        
+        # Fedora
+        sudo dnf install webkit2gtk3 gtk3
+        ```
+      </Step>
+      
+      <Step title="Launch the Application">
+        After installation:
+        - Find "Mas Agua" in your application menu
+        - Or run from terminal: `mas-agua`
+        - For AppImage: Execute the file directly
+      </Step>
+    </Steps>
+    
+    ### Linux Desktop Integration
+    
+    <Note>
+      The `.deb` and `.rpm` packages automatically create desktop entries. AppImage users may want to manually create a desktop shortcut.
+    </Note>
+    
+    Create a desktop entry for AppImage:
+    ```bash
+    cat > ~/.local/share/applications/mas-agua.desktop << EOF
+    [Desktop Entry]
+    Name=Mas Agua - Centinela
+    Exec=/path/to/Mas-Agua_1.0.4_amd64.AppImage
+    Icon=mas-agua
+    Type=Application
+    Categories=Utility;
+    EOF
+    ```
+  </Tab>
+</Tabs>
+
+## Auto-Update Configuration
+
+The desktop application includes automatic update functionality:
+
+```jsx
+// Auto-update check (from src/App.jsx)
+import { useUpdater } from './hooks/useUpdater';
+
+const { checkForUpdates } = useUpdater();
+
+useEffect(() => {
+  if (isTauri()) {
+    checkForUpdates();
+  }
+}, []);
+```
+
+<Steps>
+  <Step title="Automatic Check">
+    The app checks for updates automatically on startup
+  </Step>
+  
+  <Step title="Update Notification">
+    If an update is available, you'll see a dialog prompting you to update
+  </Step>
+  
+  <Step title="Download and Install">
+    Click "Update" to download and install the latest version
+    
+    <Info>
+      Updates are downloaded from: `https://github.com/CspmIT/mas-agua-front/releases/latest`
+    </Info>
+  </Step>
+  
+  <Step title="Restart">
+    The app will restart automatically after the update is installed
+  </Step>
+</Steps>
+
+<Warning>
+  Do not close the application while an update is being installed. Wait for the automatic restart.
+</Warning>
+
+## Configuration
+
+### First-Time Setup
+
+After installation, configure your connection:
+
+<Steps>
+  <Step title="Server Configuration">
+    If not pre-configured, enter your server details:
+    - API endpoint URL
+    - WebSocket server (for real-time data)
+    - InfluxDB connection (configured by administrator)
+  </Step>
+  
+  <Step title="Authentication">
+    Login with credentials provided by your administrator:
+    ```jsx
+    // Login endpoint
+    const url = backend.Cooptech + '/login';
+    ```
+  </Step>
+  
+  <Step title="Verify Connection">
+    The app will test connectivity and load your facility configuration
+  </Step>
+</Steps>
+
+### Application Data Storage
+
+The desktop app stores data locally:
+
+<Tabs>
+  <Tab title="Windows">
+    ```
+    %APPDATA%\com.masagua.desktop\
+    ├── config/          # Application settings
+    ├── cache/           # Cached data
+    └── logs/            # Application logs
+    ```
+  </Tab>
+  
+  <Tab title="macOS">
+    ```
+    ~/Library/Application Support/com.masagua.desktop/
+    ├── config/          # Application settings
+    ├── cache/           # Cached data
+    └── logs/            # Application logs
+    ```
+  </Tab>
+  
+  <Tab title="Linux">
+    ```
+    ~/.config/com.masagua.desktop/
+    ├── config/          # Application settings
+    ├── cache/           # Cached data
+    └── logs/            # Application logs
+    ```
+  </Tab>
+</Tabs>
+
+## Uninstallation
+
+To remove the desktop application:
+
+<Tabs>
+  <Tab title="Windows">
+    ### Windows Uninstall
+    
+    **Method 1: Settings App**
+    1. Open Settings > Apps > Installed apps
+    2. Find "Mas Agua" in the list
+    3. Click the three dots menu
+    4. Select "Uninstall"
+    5. Confirm the uninstallation
+    
+    **Method 2: Control Panel**
+    1. Open Control Panel > Programs > Programs and Features
+    2. Find "Mas Agua"
+    3. Right-click and select "Uninstall"
+    4. Follow the uninstall wizard
+  </Tab>
+  
+  <Tab title="macOS">
+    ### macOS Uninstall
+    
+    1. Open Finder and navigate to Applications
+    2. Find "Mas Agua"
+    3. Drag it to the Trash (or right-click > Move to Trash)
+    4. Empty the Trash
+    
+    **Remove all app data (optional):**
+    ```bash
+    rm -rf ~/Library/Application\ Support/com.masagua.desktop
+    rm -rf ~/Library/Caches/com.masagua.desktop
+    ```
+  </Tab>
+  
+  <Tab title="Linux">
+    ### Linux Uninstall
+    
+    **Debian/Ubuntu:**
+    ```bash
+    sudo apt remove mas-agua
+    ```
+    
+    **Fedora/RHEL:**
+    ```bash
+    sudo dnf remove mas-agua
+    ```
+    
+    **AppImage:**
+    ```bash
+    # Simply delete the AppImage file
+    rm Mas-Agua_1.0.4_amd64.AppImage
+    
+    # Remove desktop entry if created
+    rm ~/.local/share/applications/mas-agua.desktop
+    ```
+    
+    **Remove all app data (optional):**
+    ```bash
+    rm -rf ~/.config/com.masagua.desktop
+    rm -rf ~/.cache/com.masagua.desktop
+    ```
+  </Tab>
+</Tabs>
+
+## Comparison: Web vs Desktop
+
+<CardGroup cols={2}>
+  <Card title="Web Application">
+    **Advantages:**
+    - No installation required
+    - Access from any device
+    - Always up-to-date
+    - Works on tablets and mobile
+    
+    **Best for:**
+    - Quick access
+    - Multiple devices
+    - Guest users
+  </Card>
+  
+  <Card title="Desktop Application">
+    **Advantages:**
+    - Better performance
+    - Native OS integration
+    - Optimized resource usage
+    - Automatic updates
+    
+    **Best for:**
+    - Primary workstation
+    - Daily monitoring
+    - Power users
+  </Card>
+</CardGroup>
+
+<Note>
+  Both versions access the same data and have identical features. Choose based on your workflow preference.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Application won't start">
+    **Possible solutions:**
+    1. Check system requirements are met
+    2. Verify antivirus isn't blocking the app
+    3. Check logs for error messages:
+       - Windows: `%APPDATA%\com.masagua.desktop\logs`
+       - macOS: `~/Library/Application Support/com.masagua.desktop/logs`
+       - Linux: `~/.config/com.masagua.desktop/logs`
+    4. Reinstall the application
+  </Accordion>
+  
+  <Accordion title="Connection errors">
+    **Check the following:**
+    1. Verify internet connection is active
+    2. Confirm server URL is correct
+    3. Check firewall isn't blocking the application
+    4. Test web version to isolate desktop-specific issues
+    5. Contact administrator to verify server status
+  </Accordion>
+  
+  <Accordion title="Updates failing">
+    **Solutions:**
+    1. Ensure you have write permissions to installation directory
+    2. Temporarily disable antivirus during update
+    3. Check available disk space (need at least 500 MB)
+    4. Download and install latest version manually if auto-update fails
+  </Accordion>
+  
+  <Accordion title="Display or rendering issues">
+    **Try these fixes:**
+    1. Update graphics drivers
+    2. Restart the application
+    3. Clear application cache:
+       - Close the app
+       - Delete cache folder (see "Application Data Storage" above)
+       - Restart the app
+    4. Check display scaling settings (recommended: 100%)
+  </Accordion>
+</AccordionGroup>
+
+## Technical Details
+
+For system administrators and advanced users:
+
+### Application Architecture
+
+```json package.json
+{
+  "name": "mas-agua",
+  "version": "1.0.0",
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.1",
+    "@tauri-apps/plugin-store": "^2.4.2",
+    "@tauri-apps/plugin-updater": "^2.9.0",
+    "react": "^18.2.0",
+    "socket.io-client": "^4.8.1"
+  }
+}
+```
+
+### Security Capabilities
+
+```json
+{
+  "security": {
+    "capabilities": [
+      {
+        "identifier": "store-access",
+        "platforms": ["linux", "macOS", "windows"],
+        "permissions": [
+          "store:default",
+          "process:default",
+          "updater:default",
+          "core:app:allow-version"
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Network Requirements
+
+The desktop application requires outbound connections to:
+- **API Server**: HTTPS (port 443) for data access
+- **WebSocket Server**: WSS (port 443) for real-time updates
+- **Update Server**: GitHub releases (for auto-updates)
+
+<Warning>
+  Ensure your firewall allows outbound HTTPS connections. The application will not function properly if blocked.
+</Warning>
+
+## Next Steps
+
+After installation:
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Learn how to use Centinela effectively
+  </Card>
+  <Card title="Configuration Guide" icon="gear">
+    Set up alarms, dashboards, and preferences
+  </Card>
+</CardGroup>
+
+---
+
+*For technical support with installation issues, contact your Cooptech representative.*

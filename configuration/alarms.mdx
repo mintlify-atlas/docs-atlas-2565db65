@@ -1,0 +1,457 @@
+---
+title: Alarm Configuration
+description: Set up automated monitoring alerts for critical water treatment parameters
+---
+
+The alarm system monitors variables continuously and triggers notifications when values exceed defined thresholds. Configure simple or combined alarms to ensure timely response to critical conditions.
+
+## Alarm Types
+
+The system supports two alarm types:
+
+<Tabs>
+  <Tab title="Simple Alarms">
+    Monitor a single variable against a threshold condition.
+    
+    **Use Cases:**
+    - Tank level too high/low
+    - Pressure exceeds safe limits
+    - Temperature out of range
+    
+    **Example:** Alert when Tank A level drops below 100L
+  </Tab>
+  
+  <Tab title="Combined Alarms">
+    Monitor two variables with logical operators (AND/OR).
+    
+    **Use Cases:**
+    - Pump running but no flow detected
+    - High pressure AND low flow rate
+    - Temperature high OR pH out of range
+    
+    **Example:** Alert when pH > 8.5 AND chlorine < 0.5 ppm
+  </Tab>
+</Tabs>
+
+## Creating an Alarm
+
+<Steps>
+  <Step title="Navigate to Alarms">
+    Access Configuration > Alarmas in the main menu.
+  </Step>
+  
+  <Step title="Click Create Alarm">
+    Click the "Crear alarma" button in the top-right corner.
+  </Step>
+  
+  <Step title="Choose Alarm Type">
+    Toggle "Alarma combinada" switch:
+    - **Off** = Simple alarm (single condition)
+    - **On** = Combined alarm (two conditions)
+  </Step>
+  
+  <Step title="Configure Alarm Parameters">
+    Fill in all required fields based on alarm type.
+  </Step>
+  
+  <Step title="Save Alarm">
+    Click "Crear alarma" to save. The alarm is activated immediately.
+  </Step>
+</Steps>
+
+## Alarm Configuration Parameters
+
+### Basic Parameters
+
+<ParamField path="name" type="string" required>
+  Descriptive name for the alarm (e.g., "Tank A Low Level Warning")
+</ParamField>
+
+<ParamField path="id_influxvars" type="number" required>
+  Primary variable ID to monitor
+</ParamField>
+
+<ParamField path="condition" type="string" required>
+  Comparison operator for the threshold
+  
+  **Available Conditions:**
+  - `>` - Greater than
+  - `<` - Less than
+  - `=` - Equal to
+  - `>=` - Greater than or equal to
+  - `<=` - Less than or equal to
+  - `entre` - Between (requires two values)
+</ParamField>
+
+<ParamField path="value" type="number" required>
+  Threshold value for comparison
+</ParamField>
+
+<ParamField path="value2" type="number">
+  Second threshold value (required only when condition is `entre`)
+</ParamField>
+
+<ParamField path="repeatInterval" type="number" required>
+  Minutes between repeated notifications while alarm condition persists
+  
+  **Recommended Values:**
+  - Critical alarms: `5` minutes
+  - Warning alarms: `15-30` minutes
+  - Information alarms: `60` minutes
+</ParamField>
+
+### Combined Alarm Parameters
+
+<ParamField path="logicOperator" type="string">
+  Logical operator combining both conditions (required for combined alarms)
+  
+  **Options:**
+  - `AND` - Both conditions must be true
+  - `OR` - Either condition can be true
+</ParamField>
+
+<ParamField path="secondaryVariableId" type="number">
+  ID of the second variable to monitor (required for combined alarms)
+</ParamField>
+
+<ParamField path="secondaryCondition" type="string">
+  Comparison operator for the secondary variable
+  
+  **Options:** `>`, `<`, `=`, `>=`, `<=` (NOT `entre`)
+</ParamField>
+
+<ParamField path="secondaryValue" type="number">
+  Threshold value for the secondary variable
+</ParamField>
+
+### Time Restrictions
+
+<ParamField path="hasTimeRange" type="boolean" default={false}>
+  Enable time-based alarm restrictions
+</ParamField>
+
+<ParamField path="startime" type="string">
+  Start time for alarm activation (24-hour format: "HH:MM")
+  
+  Required when `hasTimeRange` is `true`
+</ParamField>
+
+<ParamField path="endtime" type="string">
+  End time for alarm activation (24-hour format: "HH:MM")
+  
+  Required when `hasTimeRange` is `true`
+</ParamField>
+
+<Note>
+  Alarms with time restrictions only trigger notifications during the specified hours. The condition is still evaluated 24/7, but notifications are suppressed outside the time range.
+</Note>
+
+## Alarm Configuration Examples
+
+### Simple Alarm: Low Tank Level
+
+```json
+{
+  "name": "Tank A Low Level",
+  "id_influxvars": 15,
+  "condition": "<",
+  "value": 100,
+  "repeatInterval": 10,
+  "type": "single"
+}
+```
+
+This alarm triggers when variable ID 15 (Tank A Level) drops below 100 units, repeating every 10 minutes.
+
+### Simple Alarm: Temperature Range
+
+```json
+{
+  "name": "Water Temperature Out of Range",
+  "id_influxvars": 23,
+  "condition": "entre",
+  "value": 15,
+  "value2": 25,
+  "repeatInterval": 15,
+  "type": "single"
+}
+```
+
+Triggers when temperature is between 15°C and 25°C (outside the normal range).
+
+### Combined Alarm: Pump Malfunction
+
+```json
+{
+  "name": "Pump Running with No Flow",
+  "type": "combined",
+  "id_influxvars": 42,
+  "condition": "=",
+  "value": 1,
+  "logicOperator": "AND",
+  "secondaryVariableId": 43,
+  "secondaryCondition": "<",
+  "secondaryValue": 10,
+  "repeatInterval": 5
+}
+```
+
+Triggers when Pump Status (ID 42) equals 1 (running) AND Flow Rate (ID 43) is less than 10 L/min.
+
+### Time-Restricted Alarm
+
+```json
+{
+  "name": "Daytime High Usage Alert",
+  "id_influxvars": 30,
+  "condition": ">",
+  "value": 500,
+  "repeatInterval": 30,
+  "type": "single",
+  "hasTimeRange": true,
+  "startime": "08:00",
+  "endtime": "18:00"
+}
+```
+
+Only triggers notifications between 8:00 AM and 6:00 PM on weekdays.
+
+## Alarm Table Interface
+
+The alarms table displays all configured alarms with these columns:
+
+| Column | Description |
+|--------|-------------|
+| **Nombre** | Alarm name |
+| **Condición** | Complete condition statement with variable names and values |
+| **Tipo** | "Simple" or "Combinada" (Combined) |
+| **Repetir / Horario** | Repeat interval and time restrictions if configured |
+| **Estado** | "Activo" (Active) or "Inactivo" (Inactive) |
+| **Acciones** | Edit and Activate/Deactivate buttons |
+
+**Source Reference:** `/src/modules/ConfigAlarms/views/index.jsx:23-179`
+
+## Managing Alarms
+
+### Editing an Alarm
+
+<Steps>
+  <Step title="Click Edit Button">
+    Click the blue "Editar" button in the Actions column.
+  </Step>
+  
+  <Step title="Modify Configuration">
+    Update any alarm parameters in the modal form.
+  </Step>
+  
+  <Step title="Save Changes">
+    Click "Guardar cambios" to update the alarm.
+  </Step>
+</Steps>
+
+### Activating/Deactivating Alarms
+
+Alarms can be temporarily disabled without deletion:
+
+<Steps>
+  <Step title="Click Status Button">
+    Click "Activar" (green) or "Desactivar" (red) button.
+  </Step>
+  
+  <Step title="Confirm Action">
+    Confirm the status change in the dialog.
+  </Step>
+  
+  <Step title="Status Updated">
+    The alarm's monitoring state changes immediately.
+  </Step>
+</Steps>
+
+**Implementation:**
+
+```javascript
+const { data: res } = await request(
+  `${url}/changeStatusAlarm`,
+  'PUT',
+  {
+    id: alarmId,
+    status: currentStatus
+  }
+)
+```
+
+**Source Reference:** `/src/modules/ConfigAlarms/views/index.jsx:136-160`
+
+<Warning>
+  Deactivated alarms do not monitor conditions or send notifications. Reactivate them when needed.
+</Warning>
+
+## Condition Display Logic
+
+The system displays alarm conditions in human-readable format:
+
+**Simple Alarm Display:**
+
+```javascript
+{alarm.var_name} {alarm.condition} {alarm.value}
+// Example: "Tank_A_Level < 100"
+```
+
+**Range Condition Display:**
+
+```javascript
+{alarm.var_name} entre {alarm.value} y {alarm.value2}
+// Example: "Water_Temp entre 15 y 25"
+```
+
+**Combined Alarm Display:**
+
+```javascript
+{alarm.var_name} {alarm.condition} {alarm.value}
+{alarm.logicOperator}
+{alarm.secondaryVarName} {alarm.secondaryCondition} {alarm.secondaryValue}
+
+// Example:
+// pH_Level > 8.5
+// AND
+// Chlorine_Level < 0.5
+```
+
+**Source Reference:** `/src/modules/ConfigAlarms/views/index.jsx:28-57`
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/getAlarms` | GET | Retrieve all alarms |
+| `/createAlarm` | POST | Create new alarm |
+| `/updateAlarm/:id` | PUT | Update existing alarm |
+| `/changeStatusAlarm` | PUT | Activate/deactivate alarm |
+
+### Create/Update Alarm Request
+
+```javascript
+const payload = {
+  name: "Tank A Low Level",
+  id_influxvars: 15,
+  condition: "<",
+  value: 100,
+  repeatInterval: 10,
+  type: "single"
+}
+
+// For updates, include the alarm ID
+if (alarmData?.id) {
+  await request(`${url}/updateAlarm/${alarmData.id}`, 'PUT', payload)
+} else {
+  await request(`${url}/createAlarm`, 'POST', payload)
+}
+```
+
+**Source Reference:** `/src/modules/ConfigAlarms/components/ModalAlarm.jsx:110-161`
+
+## Payload Cleanup
+
+The system automatically removes unnecessary fields before sending:
+
+```javascript
+// Remove value2 if not "entre" condition
+if (form.condition !== 'entre') delete payload.value2
+
+// Remove combined alarm fields if simple
+if (form.type === 'single') {
+  delete payload.secondaryVariableId
+  delete payload.secondaryCondition
+  delete payload.secondaryValue
+  delete payload.logicOperator
+}
+
+// Remove time fields if no time range
+if (!form.hasTimeRange) {
+  delete payload.startime
+  delete payload.endtime
+  delete payload.hasTimeRange
+}
+```
+
+**Source Reference:** `/src/modules/ConfigAlarms/components/ModalAlarm.jsx:115-133`
+
+## Best Practices
+
+<Accordion title="Alarm Naming">
+  Use clear, action-oriented names:
+  
+  **Good Examples:**
+  - "Tank A Low Level Warning"
+  - "Pump 2 High Temperature Alert"
+  - "Filter Pressure Drop Critical"
+  
+  **Avoid:**
+  - "Alarm 1"
+  - "Test"
+  - "var42_check"
+</Accordion>
+
+<Accordion title="Repeat Intervals">
+  Balance between notification frequency and alarm fatigue:
+  
+  - **Critical (life/safety):** 5 minutes
+  - **High priority (equipment damage):** 10-15 minutes
+  - **Medium priority (efficiency):** 30 minutes
+  - **Low priority (information):** 60+ minutes
+  
+  Consider increasing intervals for persistent conditions to avoid notification flooding.
+</Accordion>
+
+<Accordion title="Combined Alarms">
+  Use combined alarms for:
+  - Detecting equipment malfunctions (status + performance)
+  - Validating sensor readings (cross-check variables)
+  - Complex operational conditions
+  
+  **AND Logic:** All conditions must be true (stricter)
+  
+  **OR Logic:** Any condition can trigger (broader monitoring)
+</Accordion>
+
+<Accordion title="Time Restrictions">
+  Use time-restricted alarms for:
+  - Business-hours-only notifications
+  - Different thresholds for day/night operations
+  - Maintenance windows (suppress alarms during scheduled work)
+  
+  <Note>
+    Create two alarms with different time ranges if you need 24/7 monitoring with different parameters for different times.
+  </Note>
+</Accordion>
+
+## Troubleshooting
+
+<Accordion title="Alarm Not Triggering">
+  **Checklist:**
+  1. Verify alarm status is "Activo"
+  2. Check variable is receiving data
+  3. Confirm threshold values are correct
+  4. For time-restricted alarms, verify current time is within range
+  5. Check repeat interval hasn't suppressed notification
+</Accordion>
+
+<Accordion title="Too Many Notifications">
+  **Solutions:**
+  1. Increase repeat interval
+  2. Adjust threshold to reduce false positives
+  3. Add time restrictions to limit notification windows
+  4. Review if condition is too sensitive
+</Accordion>
+
+<Accordion title="Combined Alarm Logic Issues">
+  **Troubleshooting:**
+  1. Test each condition separately with simple alarms
+  2. Verify both variables are updating
+  3. Review AND vs OR logic choice
+  4. Check that secondary condition operator is correct
+</Accordion>
+
+<Note>
+  Alarm evaluation happens continuously in real-time. Changes to alarm configuration take effect immediately without requiring system restart.
+</Note>

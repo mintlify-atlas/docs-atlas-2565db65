@@ -1,0 +1,337 @@
+---
+title: 'Environment Variables'
+description: 'Configure Centinela application settings with environment variables'
+icon: 'gear'
+---
+
+Centinela uses Vite environment variables to configure the application for different deployment environments. These variables control API endpoints, authentication, and application behavior.
+
+## Overview
+
+Environment variables in Centinela are:
+
+- **Build-time variables**: Embedded during the Vite build process
+- **Prefixed with `VITE_`**: Required for Vite to expose them to the client
+- **Accessed via `import.meta.env`**: Standard Vite environment access pattern
+
+<Warning>
+  Environment variables are baked into the compiled JavaScript at build time. Changes require a rebuild to take effect.
+</Warning>
+
+## Required Variables
+
+### VITE_APP_NAME
+
+<ParamField path="VITE_APP_NAME" type="string" required>
+  Application identifier used to select the correct backend and frontend URLs from the routing configuration.
+</ParamField>
+
+**Valid values:**
+- `"Centinela"` - Water treatment monitoring system (primary)
+- `"Mas Agua"` - Alternative water management system
+- `"Cooptech"` - Parent platform integration
+- `"Reconecta"` - Reconnection management
+
+**Usage in code:**
+
+```javascript src/modules/alert/views/index.jsx:23
+const url = backend[import.meta.env.VITE_APP_NAME]
+```
+
+```javascript src/modules/Charts/views/ConfigGraphic.jsx:79
+const url = backend[import.meta.env.VITE_APP_NAME]
+```
+
+This variable determines which backend API the application connects to based on the configuration in `src/utils/routes/app.routes.js`.
+
+### VITE_ENTORNO
+
+<ParamField path="VITE_ENTORNO" type="string" required>
+  Deployment environment that controls API endpoints, cookie settings, and feature flags.
+</ParamField>
+
+**Valid values:**
+- `"local"` - Development on localhost
+- `"desarrollo"` - Development/staging server
+- `"produccion"` - Production environment
+
+**Environment-specific behavior:**
+
+<CodeGroup>
+```javascript Local Environment
+// Frontend: http://localhost:1420
+// Backend: http://localhost:4000/api
+import.meta.env.VITE_ENTORNO === 'local'
+```
+
+```javascript Development Environment
+// Frontend: http://172.26.5.17:32000
+// Backend: http://172.26.5.17:32001/api
+import.meta.env.VITE_ENTORNO === 'desarrollo'
+```
+
+```javascript Production Environment
+// Frontend: https://masagua.cooptech.com.ar
+// Backend: https://masagua.cooptech.com.ar/api
+import.meta.env.VITE_ENTORNO === 'produccion'
+```
+</CodeGroup>
+
+**Cookie security settings:**
+
+```javascript src/modules/LoginApp/view/LoginCooptech.jsx:34-35
+secure: import.meta.env.VITE_ENTORNO === 'desarrollo' ? false : true,
+sameSite: import.meta.env.VITE_ENTORNO === 'desarrollo' ? 'Lax' : 'None',
+```
+
+<Note>
+  Production environments use secure cookies with `SameSite=None`, while development uses non-secure cookies with `SameSite=Lax` for easier testing.
+</Note>
+
+### SECRET
+
+<ParamField path="SECRET" type="string" required>
+  Secret key used for authentication, token signing, and other security operations.
+</ParamField>
+
+**Security requirements:**
+- Minimum 32 characters recommended
+- Use cryptographically random values
+- Keep different secrets for each environment
+- Never commit secrets to version control
+
+**Generate a secure secret:**
+
+```bash
+# Using OpenSSL
+openssl rand -hex 32
+
+# Using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Using /dev/urandom (Linux/Mac)
+head -c 32 /dev/urandom | base64
+```
+
+## Environment Configuration
+
+### Backend Route Configuration
+
+The `VITE_ENTORNO` and `VITE_APP_NAME` variables work together to select the correct backend URL:
+
+```javascript src/utils/routes/app.routes.js:40-44
+Centinela: import.meta.env.VITE_ENTORNO == 'local'
+  ? 'http://localhost:4000/api'
+  : import.meta.env.VITE_ENTORNO === 'desarrollo'
+  ? 'http://172.26.5.17:32001/api'
+  : 'https://masagua.cooptech.com.ar/api',
+```
+
+### Frontend Route Configuration
+
+```javascript src/utils/routes/app.routes.js:21-25
+Centinela: import.meta.env.VITE_ENTORNO === 'local'
+  ? 'http://localhost:1420'
+  : import.meta.env.VITE_ENTORNO === 'desarrollo'
+  ? 'http://172.26.5.17:32000'
+  : 'https://masagua.cooptech.com.ar',
+```
+
+## Setting Environment Variables
+
+### Docker Build
+
+Pass environment variables as build arguments:
+
+<CodeGroup>
+```bash Development
+docker build \
+  --build-arg VITE_APP_NAME="Centinela" \
+  --build-arg VITE_ENTORNO="desarrollo" \
+  --build-arg SECRET="dev-secret-key-change-in-production" \
+  -t centinela:dev .
+```
+
+```bash Production
+docker build \
+  --build-arg VITE_APP_NAME="Centinela" \
+  --build-arg VITE_ENTORNO="produccion" \
+  --build-arg SECRET="$(openssl rand -hex 32)" \
+  -t centinela:prod .
+```
+</CodeGroup>
+
+### Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml docker-compose.yml
+version: '3.8'
+
+services:
+  centinela:
+    build:
+      context: .
+      args:
+        VITE_APP_NAME: ${VITE_APP_NAME:-Centinela}
+        VITE_ENTORNO: ${VITE_ENTORNO:-produccion}
+        SECRET: ${SECRET}
+    ports:
+      - "80:80"
+    restart: unless-stopped
+```
+
+Then create a `.env` file (do not commit this):
+
+```bash .env
+VITE_APP_NAME=Centinela
+VITE_ENTORNO=produccion
+SECRET=your-production-secret-key-here
+```
+
+<Warning>
+  Add `.env` to your `.gitignore` to prevent accidentally committing secrets to version control.
+</Warning>
+
+### Local Development
+
+For local development with Vite, create a `.env.local` file:
+
+```bash .env.local
+VITE_APP_NAME=Centinela
+VITE_ENTORNO=local
+SECRET=local-development-secret
+```
+
+Vite automatically loads `.env.local` during development:
+
+```bash
+npm run dev
+```
+
+## Environment Variable Reference
+
+### Complete Variable List
+
+| Variable | Type | Required | Example | Description |
+|----------|------|----------|---------|-------------|
+| `VITE_APP_NAME` | string | Yes | `"Centinela"` | Application identifier for routing |
+| `VITE_ENTORNO` | string | Yes | `"produccion"` | Deployment environment |
+| `SECRET` | string | Yes | `"a1b2c3..."` | Security secret key |
+
+### Additional Optional Variables
+
+While not in the Dockerfile, these variables are referenced in the codebase:
+
+<ParamField path="VITE_WIFI" type="string">
+  Controls offline mode behavior. Set to `"sin"` to enable offline menu caching.
+</ParamField>
+
+```javascript src/modules/NavBarCustom/views/index.jsx:115
+const permiso = import.meta.env.VITE_WIFI == 'sin' 
+  ? list_menu 
+  : await getPermissionDb()
+```
+
+<ParamField path="VITE_COOPTECH_URL" type="string">
+  URL to redirect to when returning to the Cooptech platform.
+</ParamField>
+
+```javascript src/context/TabContext.jsx:45
+window.location.replace(import.meta.env.VITE_COOPTECH_URL)
+```
+
+## Verifying Environment Variables
+
+After building, you can verify the environment variables were applied:
+
+### During Build
+
+Check the build output for environment variable references:
+
+```bash
+npm run build
+```
+
+### In Browser Console
+
+Access environment variables in the browser console:
+
+```javascript
+// Check current environment
+console.log(import.meta.env.VITE_ENTORNO)
+
+// Check app name
+console.log(import.meta.env.VITE_APP_NAME)
+
+// Note: SECRET is used during build but not exposed to browser
+```
+
+### Inspect Built Files
+
+```bash
+# Search for environment values in built assets
+grep -r "produccion" dist/assets/
+grep -r "Centinela" dist/assets/
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Use different secrets per environment">
+    Never reuse secrets between development, staging, and production.
+  </Step>
+
+  <Step title="Rotate secrets regularly">
+    Change production secrets on a regular schedule and after any security incident.
+  </Step>
+
+  <Step title="Use environment-specific files">
+    Maintain separate `.env.development`, `.env.staging`, and `.env.production` files.
+  </Step>
+
+  <Step title="Document required variables">
+    Keep a `.env.example` file with all required variables (without actual secrets).
+  </Step>
+
+  <Step title="Validate on startup">
+    Implement checks to ensure all required variables are present before the application starts.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Variables Not Available
+
+<Warning>
+  Variables must be prefixed with `VITE_` to be exposed to the client code. Without this prefix, Vite will not include them in the build.
+</Warning>
+
+### Wrong Environment Detected
+
+If the application connects to the wrong backend:
+
+1. Verify `VITE_ENTORNO` is set correctly
+2. Check the value matches exactly: `"local"`, `"desarrollo"`, or `"produccion"`
+3. Rebuild the Docker image with correct build args
+4. Clear browser cache and hard reload
+
+### Secrets Not Working
+
+If authentication fails:
+
+1. Ensure the `SECRET` matches between frontend and backend
+2. Verify the secret was passed during Docker build
+3. Check that the secret is sufficiently long and random
+4. Confirm no whitespace or special characters are breaking the value
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Docker Deployment" icon="docker" href="/deployment/docker">
+    Build and deploy with Docker containers
+  </Card>
+  <Card title="Nginx Configuration" icon="server" href="/deployment/nginx">
+    Configure the Nginx web server
+  </Card>
+</CardGroup>

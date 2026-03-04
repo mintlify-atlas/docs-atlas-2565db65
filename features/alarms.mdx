@@ -1,0 +1,416 @@
+---
+title: 'Alarm Configuration'
+description: 'Set up intelligent alerts for critical process conditions'
+icon: 'bell'
+---
+
+Centinela's alarm system provides intelligent monitoring and notifications for critical process conditions, ensuring you're alerted when parameters exceed safe operating ranges.
+
+## Overview
+
+Create sophisticated alarm rules based on single or combined sensor conditions with flexible scheduling and notification settings.
+
+<CardGroup cols={2}>
+  <Card title="Simple Alarms" icon="bell">
+    Monitor individual variables against threshold values.
+  </Card>
+  <Card title="Combined Alarms" icon="bell-concierge">
+    Create complex conditions using multiple variables with AND/OR logic.
+  </Card>
+  <Card title="Time Restrictions" icon="clock">
+    Limit alarm activation to specific time windows.
+  </Card>
+  <Card title="Repeat Intervals" icon="rotate">
+    Control notification frequency to avoid alert fatigue.
+  </Card>
+</CardGroup>
+
+## Alarm Types
+
+### Simple Alarms
+
+Monitor a single variable against a threshold condition.
+
+<Steps>
+  <Step title="Select Variable">
+    Choose the InfluxDB variable to monitor (e.g., tank level, pressure, flow rate).
+  </Step>
+  
+  <Step title="Set Condition">
+    Define the trigger condition: greater than, less than, equal to, greater than or equal to, less than or equal to, or between.
+  </Step>
+  
+  <Step title="Define Threshold">
+    Set the value(s) that trigger the alarm.
+  </Step>
+  
+  <Step title="Configure Timing">
+    Set repeat interval and optional time restrictions.
+  </Step>
+</Steps>
+
+<Accordion title="Simple Alarm Example">
+  **Scenario**: Alert when tank level drops below 20%
+  
+  ```javascript
+  {
+    name: 'Low Tank Level Alert',
+    type: 'single',
+    id_influxvars: 15,           // Tank level sensor
+    condition: '<',               // Less than
+    value: 20,                    // 20% threshold
+    repeatInterval: 15            // Notify every 15 minutes
+  }
+  ```
+</Accordion>
+
+### Combined Alarms
+
+Create complex conditions using two variables with logical operators.
+
+<Note>
+  Combined alarms use AND or OR logic to evaluate multiple conditions simultaneously, enabling sophisticated alarm scenarios.
+</Note>
+
+**Available Logic Operators:**
+- **AND**: Both conditions must be true to trigger
+- **OR**: Either condition can trigger the alarm
+
+<Accordion title="Combined Alarm Example">
+  **Scenario**: Alert when pressure is high AND flow is low (potential blockage)
+  
+  ```javascript
+  {
+    name: 'Possible Blockage Alert',
+    type: 'combined',
+    
+    // Primary condition
+    id_influxvars: 22,           // Pressure sensor
+    condition: '>',               // Greater than
+    value: 5,                     // 5 bar
+    
+    // Logic operator
+    logicOperator: 'AND',
+    
+    // Secondary condition
+    secondaryVariableId: 24,      // Flow rate sensor
+    secondaryCondition: '<',      // Less than
+    secondaryValue: 10,           // 10 L/s
+    
+    repeatInterval: 5             // Urgent: check every 5 minutes
+  }
+  ```
+</Accordion>
+
+<Accordion title="OR Logic Example">
+  **Scenario**: Alert if EITHER pressure is too high OR temperature is too high
+  
+  ```javascript
+  {
+    name: 'Critical Operating Conditions',
+    type: 'combined',
+    
+    id_influxvars: 22,           // Pressure sensor
+    condition: '>',
+    value: 8,                     // 8 bar (critical pressure)
+    
+    logicOperator: 'OR',
+    
+    secondaryVariableId: 30,      // Temperature sensor
+    secondaryCondition: '>',
+    secondaryValue: 45,           // 45°C (critical temp)
+    
+    repeatInterval: 1             // Immediate: check every minute
+  }
+  ```
+</Accordion>
+
+## Condition Operators
+
+All alarm types support the following condition operators:
+
+<Tabs>
+  <Tab title="Greater Than (>)">
+    Triggers when the measured value exceeds the threshold.
+    
+    **Example**: Flow rate > 50 L/s (over-flow condition)
+  </Tab>
+  
+  <Tab title="Less Than (<)">
+    Triggers when the measured value falls below the threshold.
+    
+    **Example**: Tank level < 15% (low level warning)
+  </Tab>
+  
+  <Tab title="Equal To (=)">
+    Triggers when the measured value exactly matches the threshold.
+    
+    **Example**: Pump status = 0 (stopped when should be running)
+  </Tab>
+  
+  <Tab title="Greater or Equal">
+    Triggers when value is at or above the threshold.
+    
+    **Example**: Pressure at or above 6 bar (at or above limit)
+  </Tab>
+  
+  <Tab title="Less or Equal">
+    Triggers when value is at or below the threshold.
+    
+    **Example**: Temperature at or below 5°C (at or below minimum)
+  </Tab>
+  
+  <Tab title="Between">
+    Triggers when value is within a specified range. Requires two threshold values.
+    
+    **Example**: pH between 6.5 and 8.5 (outside acceptable range)
+  </Tab>
+</Tabs>
+
+### Between Condition
+
+The "between" operator requires two values and triggers when the measurement falls within that range:
+
+```javascript
+{
+  condition: 'entre',
+  value: 6.5,        // Lower bound
+  value2: 8.5        // Upper bound
+}
+```
+
+<Warning>
+  The "between" condition checks if the value is INSIDE the range. For alerts on values OUTSIDE a safe range, use two separate alarms with < and > conditions.
+</Warning>
+
+## Repeat Intervals
+
+Control how frequently alarm notifications are sent to prevent alert fatigue.
+
+**Configuration:**
+```javascript
+repeatInterval: 15  // Minutes between notifications
+```
+
+**Recommended intervals:**
+- **1-5 minutes**: Critical safety alarms (pressure, emergency stops)
+- **15-30 minutes**: Important operational alarms (levels, flow rates)
+- **60+ minutes**: Informational warnings (efficiency, optimization)
+
+<Note>
+  The repeat interval prevents the same alarm from triggering multiple notifications in rapid succession. Once triggered, the alarm will wait the specified interval before checking again.
+</Note>
+
+## Time Restrictions
+
+Limit alarm activation to specific time windows, useful for alarms relevant only during certain operational periods.
+
+<Steps>
+  <Step title="Enable Time Range">
+    Toggle the "Restringir alarma a un rango horario" switch in the alarm configuration.
+  </Step>
+  
+  <Step title="Set Start Time">
+    Define when the alarm should become active (24-hour format).
+  </Step>
+  
+  <Step title="Set End Time">
+    Define when the alarm should deactivate (24-hour format).
+  </Step>
+</Steps>
+
+<Accordion title="Time Restriction Example">
+  **Scenario**: Alert on high flow only during business hours (8 AM - 6 PM)
+  
+  ```javascript
+  {
+    name: 'Business Hours High Flow',
+    hasTimeRange: true,
+    startime: '08:00',
+    endtime: '18:00',
+    // ... other alarm configuration
+  }
+  ```
+  
+  This alarm will only evaluate and trigger between 8:00 AM and 6:00 PM. Outside these hours, it remains inactive.
+</Accordion>
+
+**Common use cases:**
+- Operational alarms active only during production hours
+- Maintenance windows where certain alarms should be suppressed
+- Shift-specific monitoring requirements
+
+## Alarm Management
+
+### Creating Alarms
+
+<Steps>
+  <Step title="Navigate to Alarms">
+    Access the "Alarmas" section from the main navigation.
+  </Step>
+  
+  <Step title="Click Create Alarm">
+    Click the "Crear alarma" button in the top-right corner.
+  </Step>
+  
+  <Step title="Configure Settings">
+    Fill in the alarm configuration form with all required parameters.
+  </Step>
+  
+  <Step title="Save">
+    Click "Crear alarma" to save and activate the new alarm.
+  </Step>
+</Steps>
+
+### Editing Alarms
+
+Click the "Editar" button on any alarm in the table to modify its configuration. All parameters can be updated:
+
+- Alarm name
+- Variable selections
+- Conditions and thresholds
+- Repeat intervals
+- Time restrictions
+- Alarm type (simple ↔ combined)
+
+### Activating/Deactivating Alarms
+
+<Note>
+  Alarms can be temporarily disabled without deleting their configuration, useful for maintenance periods or testing.
+</Note>
+
+**To toggle alarm status:**
+1. Locate the alarm in the table
+2. Click "Activar" or "Desactivar" button
+3. Confirm the action
+
+Inactive alarms are displayed with red "Inactivo" status in the table.
+
+### Alarm Table View
+
+The alarm management table displays:
+
+| Column | Description |
+|--------|-------------|
+| **Nombre** | Alarm name/description |
+| **Condición** | Trigger conditions (shows both conditions for combined alarms) |
+| **Tipo** | Simple or Combinada |
+| **Repetir / Horario** | Repeat interval and time restrictions if configured |
+| **Estado** | Activo (green) or Inactivo (red) |
+| **Acciones** | Edit and activate/deactivate buttons |
+
+<Accordion title="Combined Alarm Display">
+  Combined alarms show both conditions in the table:
+  
+  ```
+  Pressure > 5 bar
+  AND
+  Flow Rate < 10 L/s
+  ```
+  
+  The logic operator (AND/OR) is highlighted in blue between the conditions.
+</Accordion>
+
+## Variable Selection
+
+Alarms can monitor any InfluxDB variable configured in your system:
+
+<CardGroup cols={2}>
+  <Card title="Sensor Measurements" icon="gauge">
+    Temperature, pressure, flow rate, level sensors
+  </Card>
+  <Card title="Equipment Status" icon="gears">
+    Pump states, valve positions, motor running status
+  </Card>
+  <Card title="Calculated Values" icon="calculator">
+    Derived metrics, efficiency calculations, totals
+  </Card>
+  <Card title="System Health" icon="heart-pulse">
+    Communication status, data quality indicators
+  </Card>
+</CardGroup>
+
+The variable dropdown in the alarm configuration shows all available variables with their names for easy selection.
+
+## Best Practices
+
+### Naming Conventions
+
+Use descriptive names that clearly indicate:
+- What is being monitored
+- The condition being checked
+- The severity level (if applicable)
+
+**Good examples:**
+- "Critical: Main Tank Low Level"
+- "Warning: High Inlet Pressure"
+- "Info: Night Operation Flow"
+
+### Threshold Selection
+
+<Warning>
+  Set thresholds with appropriate margins from critical values to allow time for response before dangerous conditions occur.
+</Warning>
+
+**Recommended approach:**
+- **Critical alarms**: Set at absolute limits
+- **Warning alarms**: Set at 80-90% of critical values
+- **Informational**: Set at optimal operating range boundaries
+
+### Repeat Interval Tuning
+
+Balance notification frequency against alarm importance:
+
+- Too frequent → Alert fatigue, operators may ignore
+- Too infrequent → Delayed response to developing issues
+
+**Test your alarms** under controlled conditions to verify they trigger correctly and at appropriate intervals.
+
+### Combined Alarm Strategies
+
+**When to use AND logic:**
+- Confirming a specific fault condition (high pressure AND low flow = blockage)
+- Reducing false positives from single sensor anomalies
+
+**When to use OR logic:**
+- Multiple independent critical conditions
+- Redundant sensor monitoring (either sensor A OR sensor B exceeds limit)
+
+## Troubleshooting
+
+<Accordion title="Alarm Not Triggering">
+  **Check:**
+  - Alarm status is "Activo" (active)
+  - Variable ID is correct and data is being received
+  - Threshold values are appropriate for the variable's range
+  - Time restrictions (if configured) include current time
+  - Repeat interval hasn't suppressed a recent trigger
+</Accordion>
+
+<Accordion title="Too Many Notifications">
+  **Solutions:**
+  - Increase repeat interval
+  - Adjust threshold to reduce sensitivity
+  - Add time restrictions to limit activation periods
+  - Use combined alarms with AND logic to confirm conditions
+</Accordion>
+
+<Accordion title="Combined Alarm Confusion">
+  **Remember:**
+  - AND requires BOTH conditions true
+  - OR requires EITHER condition true
+  - Test each condition individually first
+  - Verify variable IDs are correctly assigned
+</Accordion>
+
+## Integration
+
+Alarms integrate with the broader Centinela system:
+
+- **InfluxDB Integration**: Direct variable monitoring from time-series database
+- **Notification System**: Email/SMS alerts (configuration dependent)
+- **Logging**: All alarm triggers are logged for audit and analysis
+
+<Card title="Next Steps" icon="arrow-right">
+  Learn about viewing real-time system status in the [Real-Time Monitoring](/features/real-time-monitoring) documentation.
+</Card>

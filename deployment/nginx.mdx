@@ -1,0 +1,573 @@
+---
+title: 'Nginx Configuration'
+description: 'Configure Nginx web server for the Centinela monitoring system'
+icon: 'server'
+---
+
+The Centinela application uses Nginx as its web server to serve static files and handle Single Page Application (SPA) routing. This guide covers the Nginx configuration included in the Docker deployment.
+
+## Configuration Overview
+
+Centinela includes two Nginx configuration files:
+
+1. **`nginx.conf`**: Global Nginx configuration with performance and logging settings
+2. **`nginx/default.conf`**: Server block configuration for the Centinela application
+
+<Note>
+  The Docker image automatically copies `nginx/default.conf` to `/etc/nginx/conf.d/default.conf` during the build process.
+</Note>
+
+## Default Server Configuration
+
+The primary configuration file is located at `nginx/default.conf`:
+
+```nginx nginx/default.conf
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+
+    # Ruta para archivos estáticos como JS, CSS, imágenes, etc.
+    location ~ ^/(assets|.*\.js|.*\.css|.*\.woff2?|.*\.ttf|.*\.svg|.*\.ico)$ {
+        try_files $uri =404;
+        access_log off;
+    }
+
+    # SPA fallback para rutas que no existen físicamente
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header X-Debug-Host $host always;
+    }
+
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}
+```
+
+## Configuration Breakdown
+
+### Server Block
+
+<ParamField path="listen" type="directive">
+  Configures IPv4 and IPv6 listeners on port 80 as the default server.
+</ParamField>
+
+```nginx
+listen 80 default_server;
+listen [::]:80 default_server;
+```
+
+The `default_server` parameter means this server block handles requests that don't match any other server name.
+
+<ParamField path="server_name" type="directive">
+  The underscore `_` is a catch-all that matches any hostname.
+</ParamField>
+
+```nginx
+server_name _;
+```
+
+<ParamField path="root" type="directive">
+  Sets the document root where Nginx serves files from.
+</ParamField>
+
+```nginx
+root /usr/share/nginx/html;
+index index.html index.htm;
+```
+
+### Static Asset Handling
+
+The first location block handles static assets with optimized caching:
+
+```nginx
+location ~ ^/(assets|.*\.js|.*\.css|.*\.woff2?|.*\.ttf|.*\.svg|.*\.ico)$ {
+    try_files $uri =404;
+    access_log off;
+}
+```
+
+**What this does:**
+
+<Steps>
+  <Step title="Pattern matching">
+    Uses regex to match static asset paths:
+    - `/assets/*` - Vite asset directory
+    - `*.js` - JavaScript files
+    - `*.css` - Stylesheets
+    - `*.woff`, `*.woff2`, `*.ttf` - Font files
+    - `*.svg`, `*.ico` - Icons and images
+  </Step>
+
+  <Step title="File serving">
+    `try_files $uri =404` attempts to serve the exact file requested, or returns 404 if not found.
+  </Step>
+
+  <Step title="Logging optimization">
+    `access_log off` disables access logging for static assets to reduce I/O and log file size.
+  </Step>
+</Steps>
+
+<Note>
+  Disabling access logs for static assets significantly reduces disk I/O in high-traffic scenarios without losing important request data.
+</Note>
+
+### SPA Routing Support
+
+The second location block enables client-side routing:
+
+```nginx
+location / {
+    try_files $uri $uri/ /index.html;
+    add_header X-Debug-Host $host always;
+}
+```
+
+**How SPA routing works:**
+
+<Steps>
+  <Step title="Try exact file">
+    `$uri` - First, try to serve the exact requested path as a file.
+  </Step>
+
+  <Step title="Try directory">
+    `$uri/` - If not a file, try to serve it as a directory (with index.html).
+  </Step>
+
+  <Step title="Fallback to index">
+    `/index.html` - If neither exists, serve the main index.html file.
+  </Step>
+</Steps>
+
+This is essential for React Router and other client-side routing libraries. When users navigate to `/dashboard` or `/alerts`, Nginx serves `index.html`, and React handles the routing.
+
+<ParamField path="X-Debug-Host" type="header">
+  Adds a debug header showing the hostname. Useful for troubleshooting proxy configurations.
+</ParamField>
+
+### Error Pages
+
+```nginx
+error_page 500 502 503 504 /50x.html;
+location = /50x.html {
+    root /usr/share/nginx/html;
+}
+```
+
+Serves a custom error page for server errors (5xx status codes).
+
+## Global Nginx Configuration
+
+The `nginx.conf` file provides global settings:
+
+```nginx nginx.conf
+user nginx;
+worker_processes auto;
+pid /run/nginx.pid;
+error_log /var/log/nginx/error.log;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    types_hash_max_size 2048;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # SSL Settings
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+
+    # Logging
+    error_log /var/log/nginx/error.log debug;
+    access_log /var/log/nginx/access.log;
+
+    # Gzip Compression
+    gzip on;
+
+    # Include server configurations
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}
+```
+
+### Key Settings
+
+<ParamField path="worker_processes" type="directive" default="auto">
+  Automatically sets worker processes based on CPU cores.
+</ParamField>
+
+<ParamField path="worker_connections" type="directive" default="1024">
+  Maximum number of simultaneous connections per worker process.
+</ParamField>
+
+<ParamField path="sendfile" type="directive" default="on">
+  Enables efficient file transfer using the sendfile() system call.
+</ParamField>
+
+<ParamField path="tcp_nopush" type="directive" default="on">
+  Optimizes packet transmission by sending headers in one packet.
+</ParamField>
+
+<ParamField path="gzip" type="directive" default="on">
+  Enables gzip compression for responses (basic configuration).
+</ParamField>
+
+## Performance Optimization
+
+### Enable Advanced Gzip Compression
+
+For better performance, enable advanced gzip settings:
+
+```nginx
+gzip on;
+gzip_vary on;
+gzip_proxied any;
+gzip_comp_level 6;
+gzip_buffers 16 8k;
+gzip_http_version 1.1;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+```
+
+<Note>
+  These settings are commented out in the default `nginx.conf` but can be enabled by uncommenting them.
+</Note>
+
+### Add Caching Headers
+
+Improve client-side caching for static assets:
+
+```nginx
+location ~ ^/(assets|.*\.js|.*\.css|.*\.woff2?|.*\.ttf|.*\.svg|.*\.ico)$ {
+    try_files $uri =404;
+    access_log off;
+    
+    # Cache static assets for 1 year
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
+```
+
+### Increase Buffer Sizes
+
+For applications with large headers or cookies:
+
+```nginx
+server {
+    # ... other settings ...
+    
+    client_body_buffer_size 16k;
+    client_header_buffer_size 1k;
+    large_client_header_buffers 4 8k;
+}
+```
+
+## HTTPS/SSL Configuration
+
+<Warning>
+  The default configuration only supports HTTP on port 80. For production, you should enable HTTPS.
+</Warning>
+
+### Basic SSL Configuration
+
+Update the server block to support HTTPS:
+
+```nginx
+server {
+    listen 443 ssl http2 default_server;
+    listen [::]:443 ssl http2 default_server;
+    server_name centinela.yourdomain.com;
+
+    ssl_certificate /etc/nginx/ssl/cert.pem;
+    ssl_certificate_key /etc/nginx/ssl/key.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # ... rest of configuration ...
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name centinela.yourdomain.com;
+    return 301 https://$server_name$request_uri;
+}
+```
+
+### Using Let's Encrypt with Certbot
+
+<Steps>
+  <Step title="Install Certbot">
+    ```bash
+    docker exec -it centinela-app apk add certbot certbot-nginx
+    ```
+  </Step>
+
+  <Step title="Obtain certificate">
+    ```bash
+    certbot --nginx -d centinela.yourdomain.com
+    ```
+  </Step>
+
+  <Step title="Auto-renewal">
+    Add a cron job or systemd timer to renew certificates:
+    ```bash
+    certbot renew --dry-run
+    ```
+  </Step>
+</Steps>
+
+## Reverse Proxy Configuration
+
+If you need to proxy API requests to a backend server:
+
+```nginx
+# Proxy API requests to backend
+location /api {
+    proxy_pass http://backend:4000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+<Note>
+  This is useful if you want to serve both the frontend and backend from the same domain, avoiding CORS issues.
+</Note>
+
+## Custom Configuration in Docker
+
+To use a custom Nginx configuration:
+
+### Method 1: Modify nginx/default.conf
+
+Edit the existing `nginx/default.conf` file and rebuild:
+
+```bash
+# Edit configuration
+vim nginx/default.conf
+
+# Rebuild Docker image
+docker build -t centinela:custom .
+```
+
+### Method 2: Volume Mount
+
+Mount a custom configuration at runtime:
+
+```bash
+docker run -d \
+  --name centinela-app \
+  -p 80:80 \
+  -v $(pwd)/custom-nginx.conf:/etc/nginx/conf.d/default.conf:ro \
+  centinela:latest
+```
+
+### Method 3: Custom Dockerfile
+
+Create a derived Dockerfile:
+
+```dockerfile
+FROM centinela:latest
+COPY custom-nginx.conf /etc/nginx/conf.d/default.conf
+```
+
+## Testing Configuration
+
+### Syntax Check
+
+Before restarting Nginx, validate the configuration:
+
+```bash
+# Inside container
+docker exec centinela-app nginx -t
+
+# Expected output:
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+```
+
+### Reload Configuration
+
+After making changes, reload without downtime:
+
+```bash
+docker exec centinela-app nginx -s reload
+```
+
+### View Active Configuration
+
+```bash
+# View main config
+docker exec centinela-app cat /etc/nginx/nginx.conf
+
+# View server config
+docker exec centinela-app cat /etc/nginx/conf.d/default.conf
+```
+
+## Monitoring and Logs
+
+### Access Logs
+
+```bash
+# Tail access log
+docker exec centinela-app tail -f /var/log/nginx/access.log
+
+# View specific time range
+docker exec centinela-app grep "04/Mar/2026" /var/log/nginx/access.log
+```
+
+### Error Logs
+
+```bash
+# Tail error log
+docker exec centinela-app tail -f /var/log/nginx/error.log
+
+# View only errors (not warnings)
+docker exec centinela-app grep "\[error\]" /var/log/nginx/error.log
+```
+
+### Log Format
+
+The default log format includes:
+- Remote address
+- Request time
+- Request method and URI
+- Response status
+- Bytes sent
+- User agent
+- Referrer
+
+## Troubleshooting
+
+### 404 on Client-Side Routes
+
+If you get 404 errors when refreshing the page on routes like `/dashboard`:
+
+<Steps>
+  <Step title="Check SPA fallback">
+    Ensure the `try_files $uri $uri/ /index.html;` directive is present in the location block.
+  </Step>
+
+  <Step title="Verify configuration">
+    ```bash
+    docker exec centinela-app nginx -t
+    ```
+  </Step>
+
+  <Step title="Reload Nginx">
+    ```bash
+    docker exec centinela-app nginx -s reload
+    ```
+  </Step>
+</Steps>
+
+### Static Assets Not Loading
+
+If CSS, JavaScript, or images fail to load:
+
+1. Check the browser console for 404 errors
+2. Verify file paths in the built `dist` directory
+3. Ensure the regex pattern in the static location block matches your asset paths
+4. Check file permissions in the container
+
+```bash
+# Check files in container
+docker exec centinela-app ls -la /usr/share/nginx/html/
+docker exec centinela-app ls -la /usr/share/nginx/html/assets/
+```
+
+### Performance Issues
+
+<Steps>
+  <Step title="Enable gzip compression">
+    Uncomment advanced gzip settings in `nginx.conf`.
+  </Step>
+
+  <Step title="Add cache headers">
+    Configure `expires` and `Cache-Control` headers for static assets.
+  </Step>
+
+  <Step title="Increase worker connections">
+    Adjust `worker_connections` based on expected traffic.
+  </Step>
+
+  <Step title="Monitor resource usage">
+    ```bash
+    docker stats centinela-app
+    ```
+  </Step>
+</Steps>
+
+## Security Best Practices
+
+<Warning>
+  Always implement these security measures in production environments.
+</Warning>
+
+### Hide Nginx Version
+
+```nginx
+http {
+    server_tokens off;
+    # ... other settings ...
+}
+```
+
+### Add Security Headers
+
+```nginx
+location / {
+    try_files $uri $uri/ /index.html;
+    
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+}
+```
+
+### Rate Limiting
+
+```nginx
+http {
+    limit_req_zone $binary_remote_addr zone=general:10m rate=10r/s;
+    
+    server {
+        location / {
+            limit_req zone=general burst=20 nodelay;
+            # ... other directives ...
+        }
+    }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Docker Deployment" icon="docker" href="/deployment/docker">
+    Learn about the Docker build and deployment process
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/deployment/environment-variables">
+    Configure application settings
+  </Card>
+</CardGroup>

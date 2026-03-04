@@ -1,0 +1,247 @@
+---
+title: 'ButtonCustom'
+description: 'Custom button component with flexible styling and configuration options for the Centinela water treatment monitoring system'
+icon: 'square-mouse-pointer'
+---
+
+## Overview
+
+The `ButtonCustom` component is a flexible button wrapper that extends standard HTML button functionality with custom styling and consistent design across the Centinela application. It supports multiple button types, custom classes, and disabled states.
+
+## Import
+
+```jsx
+import ButtonCustom from '../../../components/ButtonCustom'
+```
+
+## Props
+
+<ParamField path="type" type="string" default="button">
+  The HTML button type attribute. Common values include:
+  - `button` - Standard button
+  - `submit` - Form submission button
+  - `reset` - Form reset button
+</ParamField>
+
+<ParamField path="children" type="ReactNode">
+  The content to display inside the button. Can include text, icons, or other React components.
+</ParamField>
+
+<ParamField path="onclick" type="function">
+  Event handler function called when the button is clicked.
+  
+  ```jsx
+  onclick={(e) => console.log('Button clicked')}
+  ```
+</ParamField>
+
+<ParamField path="props" type="object">
+  Additional configuration object with the following properties:
+  
+  <ParamField path="props.text" type="string">
+    Alternative way to provide button text. Takes priority over `children` if both are provided.
+  </ParamField>
+  
+  <ParamField path="props.class" type="string">
+    Custom CSS classes to apply to the button for additional styling.
+  </ParamField>
+  
+  <ParamField path="props.disabled" type="boolean" default="false">
+    Whether the button should be disabled (non-interactive).
+  </ParamField>
+</ParamField>
+
+## Default Styling
+
+The component applies the following default classes:
+- `py-2.5` - Vertical padding
+- `px-4` - Horizontal padding
+- `font-semibold` - Bold font weight
+- `AeromaticsRegular` - Custom font family
+- `rounded-xl` - Extra large border radius
+- `shadow-md` - Medium shadow effect
+
+## Usage Examples
+
+### Basic Button
+
+```jsx
+<ButtonCustom 
+  type="button" 
+  onclick={() => console.log('Clicked!')}
+  props={{ text: 'Click Me' }}
+/>
+```
+
+### Submit Button with Custom Styling
+
+```jsx
+<ButtonCustom 
+  type="submit" 
+  onclick={handleSubmit}
+  props={{
+    text: 'Guardar Cambios',
+    class: 'bg-blue-600 text-white hover:bg-blue-700'
+  }}
+/>
+```
+
+### Disabled Button
+
+```jsx
+<ButtonCustom 
+  type="button" 
+  onclick={handleAction}
+  props={{
+    text: 'Procesando...',
+    disabled: true,
+    class: 'bg-gray-400 text-gray-200 cursor-not-allowed'
+  }}
+/>
+```
+
+### Button with Icon Children
+
+```jsx
+<ButtonCustom 
+  type="button" 
+  onclick={handleRefresh}
+>
+  <RefreshIcon className="mr-2" />
+  Actualizar Datos
+</ButtonCustom>
+```
+
+### Primary Action Button
+
+```jsx
+<ButtonCustom 
+  type="submit" 
+  onclick={handleSave}
+  props={{
+    text: 'Crear Gráfico',
+    class: 'bg-primary text-white hover:bg-primary-dark transition-colors'
+  }}
+/>
+```
+
+### Danger Button
+
+```jsx
+<ButtonCustom 
+  type="button" 
+  onclick={handleDelete}
+  props={{
+    text: 'Eliminar',
+    class: 'bg-red-600 text-white hover:bg-red-700'
+  }}
+/>
+```
+
+## Common Use Cases
+
+<Tabs>
+  <Tab title="Form Submission">
+    ```jsx
+    import { useForm } from 'react-hook-form'
+    import ButtonCustom from '../../../components/ButtonCustom'
+
+    function MyForm() {
+      const { handleSubmit } = useForm()
+      
+      const onSubmit = (data) => {
+        console.log('Form data:', data)
+      }
+
+      return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {/* Form fields */}
+          
+          <ButtonCustom 
+            type="submit"
+            props={{
+              text: 'Enviar Formulario',
+              class: 'bg-green-600 text-white hover:bg-green-700'
+            }}
+          />
+        </form>
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Navigation">
+    ```jsx
+    import { useNavigate } from 'react-router-dom'
+    import ButtonCustom from '../../../components/ButtonCustom'
+
+    function DashboardNav() {
+      const navigate = useNavigate()
+
+      return (
+        <ButtonCustom 
+          type="button"
+          onclick={() => navigate('/config/graphic')}
+          props={{
+            text: 'Crear Gráfico',
+            class: 'bg-primary text-white'
+          }}
+        />
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Conditional State">
+    ```jsx
+    import { useState } from 'react'
+    import ButtonCustom from '../../../components/ButtonCustom'
+
+    function DataLoader() {
+      const [loading, setLoading] = useState(false)
+
+      const handleLoad = async () => {
+        setLoading(true)
+        await fetchData()
+        setLoading(false)
+      }
+
+      return (
+        <ButtonCustom 
+          type="button"
+          onclick={handleLoad}
+          props={{
+            text: loading ? 'Cargando...' : 'Cargar Datos',
+            disabled: loading,
+            class: loading 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }}
+        />
+      )
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Component Source
+
+Location: `~/workspace/source/src/components/ButtonCustom/index.jsx`
+
+<Note>
+  The ButtonCustom component provides a consistent button interface across the Centinela application. For more complex button states or variants, consider wrapping this component or extending its props object with additional styling options.
+</Note>
+
+## Accessibility
+
+- Always provide meaningful text through either `children` or `props.text`
+- Use appropriate `type` attribute for form contexts
+- Ensure disabled states are visually distinct
+- Consider adding ARIA labels for icon-only buttons
+
+## Best Practices
+
+1. **Consistent Styling**: Define reusable button style classes for common actions (primary, secondary, danger)
+2. **Loading States**: Disable buttons during async operations and update text to reflect state
+3. **Type Specification**: Always specify the button type to prevent unintended form submissions
+4. **Click Handlers**: Use the `onclick` prop instead of wrapping in additional elements

@@ -1,0 +1,160 @@
+---
+title: 'Desktop Application Overview'
+description: 'Learn about the Centinela desktop application built with Tauri for cross-platform water treatment monitoring'
+---
+
+## Introduction
+
+The Centinela desktop application is a native cross-platform solution for water treatment monitoring and control. Built with **Tauri 2.x**, it combines the power of Rust for the backend with a modern React frontend, delivering a lightweight, secure, and performant desktop experience.
+
+<Info>
+  The desktop app is branded as **Mas Agua** (version 1.0.4) and provides the same powerful monitoring capabilities as the web version, optimized for desktop workflows.
+</Info>
+
+## Key Features
+
+### Native Performance
+
+Leveraging Tauri's Rust-based architecture, the application offers:
+
+- **Small Bundle Size**: Significantly smaller than Electron-based alternatives
+- **Low Memory Footprint**: Efficient resource utilization
+- **Fast Startup**: Native compilation provides instant application launch
+- **Secure by Default**: Rust's memory safety and Tauri's security model
+
+### Cross-Platform Support
+
+The desktop application runs seamlessly across major operating systems:
+
+<Tabs>
+  <Tab title="Windows">
+    - **Installer Format**: MSI (Windows Installer)
+    - **Minimum Version**: Windows 10+
+    - **Architecture**: x64
+  </Tab>
+  <Tab title="macOS">
+    - **Installer Format**: DMG (Disk Image)
+    - **Minimum Version**: macOS 10.15 (Catalina)+
+    - **Architecture**: Universal (Intel + Apple Silicon)
+  </Tab>
+  <Tab title="Linux">
+    - **Installer Formats**: DEB, RPM, AppImage
+    - **Distributions**: Ubuntu, Debian, Fedora, RHEL, and derivatives
+    - **Architecture**: x64
+  </Tab>
+</Tabs>
+
+### Core Capabilities
+
+- **Real-time Monitoring**: Live data visualization from water treatment sensors
+- **Offline Support**: Local data storage with Tauri's store plugin
+- **Auto-Updates**: Seamless application updates via GitHub releases
+- **Custom Dashboards**: Drag-and-drop dashboard builder with persistent layouts
+- **Data Export**: Export monitoring data to CSV and PDF formats
+- **Interactive Maps**: MapLibre GL-powered geographic visualization
+- **Advanced Charts**: ECharts and Highcharts integration for data visualization
+
+## Architecture
+
+### Technology Stack
+
+The application is built on a modern technology foundation:
+
+**Frontend Layer**
+- **Framework**: React 18.2 with Vite 6.3
+- **UI Library**: Material-UI (MUI) Joy and Material components
+- **State Management**: React hooks and context
+- **Routing**: React Router DOM v6
+- **Real-time Communication**: Socket.IO client
+
+**Backend Layer**
+- **Runtime**: Tauri 2.9.6
+- **Language**: Rust (safe, concurrent, and performant)
+- **IPC**: Tauri's secure command system
+
+**Desktop Integration**
+- **Process Management**: `@tauri-apps/plugin-process`
+- **Local Storage**: `@tauri-apps/plugin-store`
+- **Auto-Updates**: `@tauri-apps/plugin-updater`
+
+### Window Configuration
+
+The application launches with optimized window settings:
+
+```json
+{
+  "title": "Mas Agua",
+  "width": 1024,
+  "height": 768,
+  "resizable": true,
+  "maximized": true
+}
+```
+
+<Note>
+  The application starts maximized by default to provide the best viewing experience for monitoring dashboards.
+</Note>
+
+### Security Model
+
+Tauri's capability-based security system restricts permissions to only what's necessary:
+
+- **Store Access**: Read/write to local application storage
+- **Process Control**: Manage application lifecycle and updates
+- **Updater**: Check for and install application updates
+- **App Metadata**: Access to application version information
+
+## Data Persistence
+
+The desktop application uses Tauri's **plugin-store** for local data persistence:
+
+- **User Preferences**: Theme, language, and layout settings
+- **Dashboard Configurations**: Custom widget arrangements
+- **Offline Data Cache**: Temporary storage of monitoring data
+- **Authentication Tokens**: Secure storage of session credentials
+
+<Warning>
+  Sensitive data like authentication tokens are stored securely using Tauri's encrypted store. Never manually edit store files.
+</Warning>
+
+## Comparison: Web vs Desktop
+
+| Feature | Web Application | Desktop Application |
+|---------|----------------|---------------------|
+| **Installation** | No installation required | One-time installation |
+| **Performance** | Browser-dependent | Native, optimized |
+| **Offline Mode** | Limited | Full support |
+| **Auto-Updates** | Automatic | User-initiated |
+| **System Integration** | Limited | Deep integration |
+| **Memory Usage** | Higher (browser overhead) | Lower (native runtime) |
+| **Startup Speed** | Network-dependent | Instant |
+
+## System Requirements
+
+<Tabs>
+  <Tab title="Windows">
+    - **OS**: Windows 10 (1903+) or Windows 11
+    - **RAM**: 4 GB minimum, 8 GB recommended
+    - **Disk Space**: 150 MB for installation
+    - **Display**: 1024x768 minimum resolution
+  </Tab>
+  <Tab title="macOS">
+    - **OS**: macOS 10.15 (Catalina) or later
+    - **RAM**: 4 GB minimum, 8 GB recommended
+    - **Disk Space**: 150 MB for installation
+    - **Display**: 1024x768 minimum resolution
+  </Tab>
+  <Tab title="Linux">
+    - **OS**: Ubuntu 18.04+, Debian 10+, Fedora 32+, or equivalent
+    - **RAM**: 4 GB minimum, 8 GB recommended
+    - **Disk Space**: 150 MB for installation
+    - **Display**: 1024x768 minimum resolution
+    - **Libraries**: WebKit2GTK 4.0+
+  </Tab>
+</Tabs>
+
+## Getting Started
+
+Ready to install the desktop application? Check out the [Installation Guide](/desktop/installation) for platform-specific instructions.
+
+Want to learn about keeping your application up-to-date? See the [Updates Documentation](/desktop/updates).

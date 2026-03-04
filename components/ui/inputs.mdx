@@ -1,0 +1,666 @@
+---
+title: 'Input Components'
+description: 'Specialized input components for file uploads and color selection with transparency in the Centinela monitoring system'
+icon: 'input-text'
+---
+
+## Overview
+
+Centinela provides specialized input components for common use cases including file uploads (InputFile), color pickers with transparency (InputColor), and status chips (ChipCustom). These components extend Material-UI functionality with custom styling and behavior.
+
+---
+
+## InputFile
+
+A file upload component with visual feedback, specifically designed for image uploads.
+
+### Import
+
+```jsx
+import InputFile from '../../../components/InputFile/InputFile'
+```
+
+### Props
+
+<ParamField path="title" type="string" default="Subir Archivo">
+  Button label text for the file upload button.
+</ParamField>
+
+<ParamField path="fnc" type="function" required>
+  Callback function triggered when a file is selected. Receives the event object.
+  
+  ```jsx
+  fnc={(event) => {
+    const file = event.target.files[0]
+    console.log('Selected file:', file)
+  }}
+  ```
+</ParamField>
+
+<ParamField path="fileSelected" type="File">
+  Currently selected file object to display. Used for controlled component behavior.
+  
+  ```jsx
+  fileSelected={currentFile}
+  ```
+</ParamField>
+
+### Usage Examples
+
+#### Basic File Upload
+
+```jsx
+import { useState } from 'react'
+import InputFile from '../../../components/InputFile/InputFile'
+
+function ImageUploader() {
+  const [file, setFile] = useState(null)
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0]
+    setFile(selectedFile)
+  }
+
+  return (
+    <InputFile 
+      title="Subir Imagen" 
+      fnc={handleFileChange}
+      fileSelected={file}
+    />
+  )
+}
+```
+
+#### Upload with Validation
+
+```jsx
+function ValidatedImageUpload() {
+  const [file, setFile] = useState(null)
+  const [error, setError] = useState('')
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0]
+    
+    // Validate file size (max 5MB)
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setError('File size must be less than 5MB')
+      return
+    }
+    
+    // Validate file type
+    if (!selectedFile.type.startsWith('image/')) {
+      setError('Only image files are allowed')
+      return
+    }
+    
+    setError('')
+    setFile(selectedFile)
+  }
+
+  return (
+    <div>
+      <InputFile 
+        title="Upload Logo" 
+        fnc={handleFileChange}
+        fileSelected={file}
+      />
+      {error && <p className="text-red-600 mt-2">{error}</p>}
+    </div>
+  )
+}
+```
+
+#### Upload with Preview
+
+```jsx
+function ImageUploadWithPreview() {
+  const [file, setFile] = useState(null)
+  const [preview, setPreview] = useState(null)
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0]
+    setFile(selectedFile)
+    
+    // Create preview URL
+    if (selectedFile) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreview(reader.result)
+      }
+      reader.readAsDataURL(selectedFile)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <InputFile 
+        title="Select Image" 
+        fnc={handleFileChange}
+        fileSelected={file}
+      />
+      
+      {preview && (
+        <div className="border rounded p-2">
+          <img 
+            src={preview} 
+            alt="Preview" 
+            className="max-w-xs max-h-64 object-contain"
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### Component Source
+
+Location: `~/workspace/source/src/components/InputFile/InputFile.jsx`
+
+<Note>
+  InputFile accepts only image files by default (accept='image/*'). The component displays the selected filename below the upload button.
+</Note>
+
+---
+
+## InputColor
+
+A color picker component with transparency/opacity control, outputting RGBA color values.
+
+### Import
+
+```jsx
+import InputColor from '../../../components/InputColor/InputColor'
+```
+
+### Props
+
+<ParamField path="updateBackground" type="function" required>
+  Callback function that receives the updated RGBA color string.
+  
+  ```jsx
+  updateBackground={(rgbaColor) => {
+    console.log('New color:', rgbaColor)
+    // Example output: "rgba(255, 0, 0, 0.5)"
+  }}
+  ```
+</ParamField>
+
+<ParamField path="backgroundText" type="string" required>
+  Initial color value in RGBA format.
+  
+  ```jsx
+  backgroundText="rgba(0, 0, 0, 1)"
+  ```
+</ParamField>
+
+### Usage Examples
+
+#### Basic Color Picker
+
+```jsx
+import { useState } from 'react'
+import InputColor from '../../../components/InputColor/InputColor'
+
+function ColorSelector() {
+  const [backgroundColor, setBackgroundColor] = useState('rgba(0, 0, 0, 1)')
+
+  return (
+    <div>
+      <InputColor
+        updateBackground={setBackgroundColor}
+        backgroundText={backgroundColor}
+      />
+      
+      <div 
+        className="mt-4 p-4 rounded"
+        style={{ backgroundColor }}
+      >
+        Preview
+      </div>
+    </div>
+  )
+}
+```
+
+#### Chart Background Configuration
+
+```jsx
+import InputColor from '../../../components/InputColor/InputColor'
+import { useForm } from 'react-hook-form'
+
+function ChartConfig() {
+  const { setValue, watch } = useForm({
+    defaultValues: {
+      backgroundColor: 'rgba(255, 255, 255, 0.8)'
+    }
+  })
+  
+  const bgColor = watch('backgroundColor')
+
+  return (
+    <div className="flex flex-col gap-3">
+      <InputColor
+        updateBackground={(color) => setValue('backgroundColor', color)}
+        backgroundText={bgColor}
+      />
+      
+      <div 
+        className="chart-preview p-6 rounded-lg"
+        style={{ backgroundColor: bgColor }}
+      >
+        <h3>Chart Title</h3>
+        {/* Chart content */}
+      </div>
+    </div>
+  )
+}
+```
+
+#### Multiple Color Inputs
+
+```jsx
+function ThemeEditor() {
+  const [primaryColor, setPrimaryColor] = useState('rgba(59, 130, 246, 1)')
+  const [secondaryColor, setSecondaryColor] = useState('rgba(168, 85, 247, 1)')
+  const [bgColor, setBgColor] = useState('rgba(255, 255, 255, 0.95)')
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <label className="block mb-2 font-semibold">Primary Color</label>
+        <InputColor
+          updateBackground={setPrimaryColor}
+          backgroundText={primaryColor}
+        />
+      </div>
+      
+      <div>
+        <label className="block mb-2 font-semibold">Secondary Color</label>
+        <InputColor
+          updateBackground={setSecondaryColor}
+          backgroundText={secondaryColor}
+        />
+      </div>
+      
+      <div>
+        <label className="block mb-2 font-semibold">Background Color</label>
+        <InputColor
+          updateBackground={setBgColor}
+          backgroundText={bgColor}
+        />
+      </div>
+    </div>
+  )
+}
+```
+
+### Component Source
+
+Location: `~/workspace/source/src/components/InputColor/InputColor.jsx`
+
+<Note>
+  InputColor outputs colors in RGBA format, allowing for transparency control through the opacity slider. The color is converted from HEX to RGB internally.
+</Note>
+
+---
+
+## ChipCustom
+
+A customizable chip/badge component with color variants and action icons.
+
+### Import
+
+```jsx
+import ChipCustom from '../../../components/ChipCustom/ChipCustom'
+```
+
+### Props
+
+<ParamField path="label" type="string" default="">
+  Text content to display in the chip.
+</ParamField>
+
+<ParamField path="color" type="string" default="default">
+  Color variant for the chip. Options:
+  - `default` - Gray background
+  - `success` - Green background
+  - `error` - Red background
+</ParamField>
+
+<ParamField path="onClick" type="function">
+  Click handler for the chip label. Makes the chip clickable.
+  
+  ```jsx
+  onClick={() => console.log('Chip clicked')}
+  ```
+</ParamField>
+
+<ParamField path="onDelete" type="function">
+  Shows a delete icon and calls this function when clicked.
+  
+  ```jsx
+  onDelete={() => handleRemove(id)}
+  ```
+</ParamField>
+
+<ParamField path="onInfo" type="function">
+  Shows an info icon and calls this function when clicked.
+  
+  ```jsx
+  onInfo={() => showDetails(id)}
+  ```
+</ParamField>
+
+### Usage Examples
+
+#### Basic Chips
+
+```jsx
+import ChipCustom from '../../../components/ChipCustom/ChipCustom'
+
+function StatusDisplay() {
+  return (
+    <div className="flex gap-2">
+      <ChipCustom label="Pending" color="default" />
+      <ChipCustom label="Active" color="success" />
+      <ChipCustom label="Error" color="error" />
+    </div>
+  )
+}
+```
+
+#### Clickable Chips
+
+```jsx
+function FilterChips() {
+  const [selectedFilter, setSelectedFilter] = useState('all')
+
+  return (
+    <div className="flex gap-2">
+      <ChipCustom 
+        label="All" 
+        color={selectedFilter === 'all' ? 'success' : 'default'}
+        onClick={() => setSelectedFilter('all')}
+      />
+      <ChipCustom 
+        label="Active" 
+        color={selectedFilter === 'active' ? 'success' : 'default'}
+        onClick={() => setSelectedFilter('active')}
+      />
+      <ChipCustom 
+        label="Inactive" 
+        color={selectedFilter === 'inactive' ? 'success' : 'default'}
+        onClick={() => setSelectedFilter('inactive')}
+      />
+    </div>
+  )
+}
+```
+
+#### Deletable Tags
+
+```jsx
+function TagManager() {
+  const [tags, setTags] = useState(['sensor-a', 'high-priority', 'monitored'])
+
+  const removeTag = (tagToRemove) => {
+    setTags(tags.filter(tag => tag !== tagToRemove))
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {tags.map(tag => (
+        <ChipCustom
+          key={tag}
+          label={tag}
+          color="success"
+          onDelete={() => removeTag(tag)}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+#### Chips with Info Action
+
+```jsx
+function AlarmChips() {
+  const alarms = [
+    { id: 1, name: 'Temperature High', severity: 'error' },
+    { id: 2, name: 'Pressure Normal', severity: 'success' },
+  ]
+
+  const showAlarmDetails = (alarmId) => {
+    console.log('Show details for alarm:', alarmId)
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {alarms.map(alarm => (
+        <ChipCustom
+          key={alarm.id}
+          label={alarm.name}
+          color={alarm.severity}
+          onInfo={() => showAlarmDetails(alarm.id)}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+#### Multi-Action Chips
+
+```jsx
+function SensorTags() {
+  const [sensors, setSensors] = useState([
+    { id: 1, name: 'Temp Sensor A', status: 'success' },
+    { id: 2, name: 'Flow Sensor B', status: 'error' },
+  ])
+
+  const viewSensor = (id) => {
+    console.log('View sensor:', id)
+  }
+
+  const removeSensor = (id) => {
+    setSensors(sensors.filter(s => s.id !== id))
+  }
+
+  const showSensorInfo = (id) => {
+    console.log('Show info for sensor:', id)
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {sensors.map(sensor => (
+        <ChipCustom
+          key={sensor.id}
+          label={sensor.name}
+          color={sensor.status}
+          onClick={() => viewSensor(sensor.id)}
+          onDelete={() => removeSensor(sensor.id)}
+          onInfo={() => showSensorInfo(sensor.id)}
+        />
+      ))}
+    </div>
+  )
+}
+```
+
+### Component Source
+
+Location: `~/workspace/source/src/components/ChipCustom/ChipCustom.jsx`
+
+### Color Variants
+
+<CodeGroup>
+```jsx Default
+<ChipCustom label="Default" color="default" />
+// Gray background (bg-gray-500)
+```
+
+```jsx Success
+<ChipCustom label="Success" color="success" />
+// Green background (bg-green-700)
+```
+
+```jsx Error
+<ChipCustom label="Error" color="error" />
+// Red background (bg-red-700)
+```
+</CodeGroup>
+
+---
+
+## Common Use Cases
+
+<Tabs>
+  <Tab title="Form with File Upload">
+    ```jsx
+    import { useState } from 'react'
+    import { TextField, Button } from '@mui/material'
+    import InputFile from '../../../components/InputFile/InputFile'
+    import InputColor from '../../../components/InputColor/InputColor'
+
+    function ChartForm() {
+      const [chartName, setChartName] = useState('')
+      const [logoFile, setLogoFile] = useState(null)
+      const [bgColor, setBgColor] = useState('rgba(255, 255, 255, 1)')
+
+      const handleSubmit = (e) => {
+        e.preventDefault()
+        
+        const formData = new FormData()
+        formData.append('name', chartName)
+        formData.append('logo', logoFile)
+        formData.append('backgroundColor', bgColor)
+        
+        // Submit form data
+      }
+
+      return (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <TextField
+            label="Chart Name"
+            value={chartName}
+            onChange={(e) => setChartName(e.target.value)}
+            fullWidth
+          />
+          
+          <InputFile
+            title="Upload Chart Logo"
+            fnc={(e) => setLogoFile(e.target.files[0])}
+            fileSelected={logoFile}
+          />
+          
+          <InputColor
+            updateBackground={setBgColor}
+            backgroundText={bgColor}
+          />
+          
+          <Button type="submit" variant="contained">
+            Create Chart
+          </Button>
+        </form>
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Tag Filter System">
+    ```jsx
+    import { useState } from 'react'
+    import ChipCustom from '../../../components/ChipCustom/ChipCustom'
+
+    function DataFilter() {
+      const [activeTags, setActiveTags] = useState(['all'])
+      const availableTags = ['all', 'sensors', 'alarms', 'reports']
+
+      const toggleTag = (tag) => {
+        if (tag === 'all') {
+          setActiveTags(['all'])
+        } else {
+          const newTags = activeTags.filter(t => t !== 'all')
+          
+          if (activeTags.includes(tag)) {
+            const filtered = newTags.filter(t => t !== tag)
+            setActiveTags(filtered.length ? filtered : ['all'])
+          } else {
+            setActiveTags([...newTags, tag])
+          }
+        }
+      }
+
+      return (
+        <div className="flex gap-2 flex-wrap">
+          {availableTags.map(tag => (
+            <ChipCustom
+              key={tag}
+              label={tag}
+              color={activeTags.includes(tag) ? 'success' : 'default'}
+              onClick={() => toggleTag(tag)}
+            />
+          ))}
+        </div>
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Status Badges">
+    ```jsx
+    import ChipCustom from '../../../components/ChipCustom/ChipCustom'
+
+    function SensorStatusList({ sensors }) {
+      const getStatusColor = (status) => {
+        switch(status) {
+          case 'online': return 'success'
+          case 'offline': return 'error'
+          default: return 'default'
+        }
+      }
+
+      const handleViewDetails = (sensorId) => {
+        // Navigate to sensor details
+      }
+
+      return (
+        <div className="space-y-2">
+          {sensors.map(sensor => (
+            <div key={sensor.id} className="flex items-center gap-3 p-2">
+              <span className="font-medium">{sensor.name}</span>
+              <ChipCustom
+                label={sensor.status}
+                color={getStatusColor(sensor.status)}
+                onInfo={() => handleViewDetails(sensor.id)}
+              />
+            </div>
+          ))}
+        </div>
+      )
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+### InputFile
+1. **Validation**: Always validate file size and type before processing
+2. **User Feedback**: Show preview or filename to confirm selection
+3. **Error Handling**: Provide clear error messages for invalid files
+4. **Accessibility**: Ensure the label is descriptive and meaningful
+
+### InputColor
+1. **Initial Values**: Always provide a valid RGBA string as initial value
+2. **Preview**: Show a live preview of the selected color
+3. **Contrast**: Consider text contrast when using backgrounds
+4. **Transparency**: Remember that transparency affects overlapping elements
+
+### ChipCustom
+1. **Color Semantics**: Use colors consistently (success=positive, error=negative)
+2. **Interactive States**: Only make chips clickable when there's an action
+3. **Icon Usage**: Don't combine too many actions on a single chip
+4. **Spacing**: Use flex gap for proper chip spacing in groups

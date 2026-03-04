@@ -1,0 +1,489 @@
+---
+title: 'Real-Time Monitoring'
+description: 'Live data visualization and system status monitoring'
+icon: 'tower-broadcast'
+---
+
+Centinela provides comprehensive real-time monitoring capabilities, combining dashboard widgets, historical charts, and interactive diagrams to give you complete visibility into your water treatment operations.
+
+## Monitoring Components
+
+The system offers three primary monitoring interfaces, each optimized for different operational needs:
+
+<CardGroup cols={3}>
+  <Card title="Dashboard" icon="gauge" href="/features/dashboard">
+    At-a-glance view of critical KPIs with auto-refreshing widgets.
+  </Card>
+  <Card title="Historical Charts" icon="chart-line">
+    Time-series analysis with zoom, export, and multi-variable comparison.
+  </Card>
+  <Card title="Process Diagrams" icon="diagram-project" href="/features/diagrams">
+    Visual representation of equipment with live data overlays.
+  </Card>
+</CardGroup>
+
+## Real-Time Data Flow
+
+Understand how live data flows through the Centinela monitoring system:
+
+<Steps>
+  <Step title="Data Collection">
+    Sensors and PLCs send measurements to InfluxDB time-series database continuously.
+  </Step>
+  
+  <Step title="Variable Mapping">
+    Configured InfluxDB variables link database fields to display components.
+  </Step>
+  
+  <Step title="Batch Retrieval">
+    Centinela fetches multiple variable values in a single optimized API call.
+  </Step>
+  
+  <Step title="Component Updates">
+    Dashboard widgets, charts, and diagrams update with the latest values.
+  </Step>
+  
+  <Step title="Auto-Refresh Cycle">
+    Process repeats automatically at configured intervals (30s for dashboards, 15s for charts).
+  </Step>
+</Steps>
+
+## Dashboard Monitoring
+
+The main dashboard provides instant visibility into current system status.
+
+### Auto-Refresh Behavior
+
+<Note>
+  Dashboard widgets automatically refresh every 30 seconds, fetching all variable values in a single batched API request for optimal performance.
+</Note>
+
+**Refresh cycle:**
+```javascript
+// Initial load: fetch all chart configurations
+getCharts() → extract variables → fetchMultipleData()
+
+// Set 30-second interval
+setInterval(() => fetchMultipleData(allVars), 30000)
+```
+
+### Visual Indicators
+
+Widgets provide visual cues about data status:
+
+<Tabs>
+  <Tab title="Active Data">
+    - Animations running (liquid waves, gauge sweeps)
+    - Vibrant gradient colors
+    - Current numeric values displayed
+    - LED indicators glowing when active
+  </Tab>
+  
+  <Tab title="Offline/No Data">
+    - Animations paused
+    - Muted gray colors
+    - "Sin datos" text displayed
+    - LED indicators in neutral state
+  </Tab>
+</Tabs>
+
+### Responsive Layout
+
+The dashboard grid automatically adapts to screen size:
+
+- **Mobile (< 600px)**: Single column, full-width widgets
+- **Tablet (600-1200px)**: 2-column layout for standard widgets
+- **Desktop (> 1200px)**: 4-6 column grid for dense information display
+
+<Warning>
+  On mobile devices, scroll vertically to view all widgets. The layout prioritizes readability over information density.
+</Warning>
+
+## Historical Chart Monitoring
+
+Access detailed historical analysis through the accordion-based chart dashboard.
+
+### Accordion Interface
+
+Charts are organized in collapsible accordions:
+
+1. **Collapsed state**: Shows only the chart title, no data loading
+2. **Expanded state**: Loads data and begins 15-second auto-refresh
+3. **Re-collapse**: Stops data fetching to conserve resources
+
+<Note>
+  Only expanded charts consume API resources. Collapse charts you're not actively viewing to improve performance.
+</Note>
+
+### Time Range Filtering
+
+Line charts include powerful time range controls:
+
+<CardGroup cols={2}>
+  <Card title="Slider Control" icon="sliders">
+    Drag the time slider at the bottom to select visible date range.
+  </Card>
+  <Card title="Zoom Tools" icon="magnifying-glass">
+    Click and drag on the chart to zoom into specific time periods.
+  </Card>
+  <Card title="Filter Panel" icon="filter">
+    Select absolute date ranges or relative periods (last hour, today, this week).
+  </Card>
+  <Card title="Restore View" icon="rotate-left">
+    Reset to default view with a single click.
+  </Card>
+</CardGroup>
+
+### Adaptive Sampling
+
+The system automatically adjusts data sampling based on the selected time range:
+
+| Time Range | Sampling Period | Data Points |
+|------------|----------------|-------------|
+| ≤ 15 min | 5 seconds | ~180 points |
+| ≤ 1 hour | 1 minute | ~60 points |
+| ≤ 12 hours | 5 minutes | ~144 points |
+| ≤ 7 days | 5 minutes | ~2,016 points |
+| ≤ 30 days | 30 minutes | ~1,440 points |
+| ≤ 365 days | 1 hour | ~8,760 points |
+| > 365 days | 12 hours | Varies |
+
+<Accordion title="Why Adaptive Sampling?">
+  **Performance**: Prevents loading millions of data points for long time ranges.
+  
+  **Readability**: Maintains chart clarity at all zoom levels.
+  
+  **Accuracy**: Provides fine granularity for recent data, aggregates older data.
+  
+  **Network Efficiency**: Reduces bandwidth and server load.
+</Accordion>
+
+### Interactive Features
+
+**Zoom and Pan:**
+```javascript
+// Zoom by dragging on chart
+onZoomRange({ startMs, endMs }) → recalculate filters
+
+// Pan with slider at bottom
+dataZoom.start = 20%  // View data from 20% into timeline
+dataZoom.end = 80%    // to 80% of timeline
+```
+
+**Data Export:**
+- **Save as Image**: Export current view as PNG
+- **View as Table**: See raw data in tabular format with timestamps
+- **Copy Values**: Select and copy data from table view
+
+### Multi-Series Comparison
+
+Line charts can display multiple variables simultaneously:
+
+<Steps>
+  <Step title="Configure Series">
+    Admin configures which variables appear on the same chart.
+  </Step>
+  
+  <Step title="Color Coding">
+    Each series gets a distinct color for easy identification.
+  </Step>
+  
+  <Step title="Interactive Legend">
+    Click legend items to show/hide specific series.
+  </Step>
+  
+  <Step title="Synchronized Tooltips">
+    Hover to see all series values at the same timestamp.
+  </Step>
+</Steps>
+
+## Process Diagram Monitoring
+
+View saved diagrams with live data overlays for visual process monitoring.
+
+### Loading Diagrams
+
+Access the diagram viewer to see your saved process diagrams:
+
+```
+/diagrams/view/:id
+```
+
+**The viewer displays:**
+- Complete diagram layout with all images, lines, and text
+- Live data tooltips on elements with assigned variables
+- Current values with units
+- Color-coded status for boolean variables
+
+### Variable Overlays
+
+Diagram elements bound to variables show real-time data:
+
+<Tabs>
+  <Tab title="Numeric Values">
+    Display format: `45.2 m³`
+    
+    Position options: Center, Top, Bottom, Left, Right
+  </Tab>
+  
+  <Tab title="Boolean Status">
+    Color changes based on true/false state.
+    
+    Configured colors: `colorOn` (active), `colorOff` (inactive)
+  </Tab>
+  
+  <Tab title="Percentage Display">
+    When maxValue is configured: `75.5% of 100`
+    
+    Shows fill level or capacity utilization
+  </Tab>
+  
+  <Tab title="Binary Bits">
+    Extract specific bits from binary values for multi-state indicators.
+  </Tab>
+</Tabs>
+
+### Tooltip Positioning
+
+<Note>
+  Variable tooltips can be positioned relative to the diagram element to avoid visual clutter and ensure readability.
+</Note>
+
+**Available positions:**
+- **Centro** (Center): Overlaid on element center
+- **Top**: Above the element
+- **Bottom**: Below the element
+- **Left**: To the left of the element
+- **Right**: To the right of the element
+
+## Data Quality Indicators
+
+The system provides clear feedback about data availability and quality:
+
+### Connection Status
+
+<CardGroup cols={2}>
+  <Card title="Connected" icon="plug">
+    Green indicators, active animations, current values displayed
+  </Card>
+  <Card title="Disconnected" icon="plug-circle-xmark">
+    Gray/muted colors, "Sin datos" messages, paused animations
+  </Card>
+</CardGroup>
+
+### Timestamp Information
+
+Line charts display precise timestamps for all data points:
+
+```
+Format: DD/MM/YYYY HH:mm:ss
+Timezone: America/Argentina/Buenos_Aires
+
+Example: 04/03/2026 14:35:42
+```
+
+### Value Validation
+
+All displayed values undergo validation:
+
+```javascript
+const isValidNumber = (v) =>
+  v !== null &&
+  v !== undefined &&
+  v !== '' &&
+  !isNaN(Number(v));
+```
+
+Invalid values trigger fallback displays rather than showing error states.
+
+## Performance Optimization
+
+Centinela employs several strategies to ensure smooth real-time monitoring:
+
+### Batched API Requests
+
+<Warning>
+  The system uses batched requests to fetch multiple variable values in a single API call, reducing network overhead by 10-100x compared to individual requests.
+</Warning>
+
+**Dashboard optimization:**
+```javascript
+// Instead of N requests (one per widget):
+fetchVariable(var1)
+fetchVariable(var2)
+fetchVariable(var3)
+// ...
+
+// Single batched request:
+fetchMultipleData([var1, var2, var3, ..., varN])
+```
+
+### Conditional Rendering
+
+- Collapsed chart accordions don't fetch data
+- Hidden widgets don't re-render
+- Offscreen elements use virtual scrolling (where applicable)
+
+### Memoization
+
+React components use memoization to prevent unnecessary re-renders:
+
+```javascript
+const LineChart = memo(({ xSeries, ySeries, ... }) => {
+  const memoizedOptions = useMemo(() => {
+    // Expensive chart options calculation
+  }, [dependencies]);
+  
+  return <EChart config={memoizedOptions} />;
+});
+```
+
+### Efficient Updates
+
+Only changed values trigger component updates:
+
+```javascript
+useEffect(() => {
+  if (!inflValues || Object.keys(inflValues).length === 0) return;
+  
+  // Update only affected components
+  setChartData(resolveValues(inflValues));
+}, [inflValues]);
+```
+
+## Mobile Monitoring
+
+The system is fully responsive for mobile monitoring:
+
+### Mobile Optimizations
+
+<Tabs>
+  <Tab title="Layout">
+    - Single column stack layout
+    - Larger touch targets (buttons, sliders)
+    - Simplified chart legends
+  </Tab>
+  
+  <Tab title="Charts">
+    - Reduced axis labels (rotated 35° vs 20°)
+    - Bottom legend placement
+    - Smaller toolbar icons (18px vs 14px)
+    - Increased bottom margin for controls
+  </Tab>
+  
+  <Tab title="Diagrams">
+    - Touch-friendly zoom controls
+    - Simplified toolbar
+    - Optimized element selection
+  </Tab>
+</Tabs>
+
+### Mobile Best Practices
+
+1. **Landscape orientation** provides more chart viewing area
+2. **Wifi connection** recommended for smooth auto-refresh
+3. **Focus on critical widgets** to reduce scrolling
+4. **Use dashboard** for quick checks, expand to charts for analysis
+
+## Troubleshooting
+
+<Accordion title="Widgets Show 'Sin datos'">
+  **Possible causes:**
+  - InfluxDB connection issue
+  - Variable not receiving sensor data
+  - Variable ID misconfigured
+  - Network connectivity problem
+  
+  **Check:**
+  - InfluxDB status and connectivity
+  - Sensor/PLC communication
+  - Browser console for API errors
+</Accordion>
+
+<Accordion title="Charts Not Updating">
+  **Verify:**
+  - Chart is expanded (accordion open)
+  - Browser tab is active (background tabs may throttle timers)
+  - Network connection is stable
+  - Check browser console for errors
+  
+  **Solution:**
+  - Refresh the page
+  - Collapse and re-expand the chart
+  - Check server logs for API issues
+</Accordion>
+
+<Accordion title="Slow Performance">
+  **Optimization steps:**
+  - Collapse unused chart accordions
+  - Reduce selected time range on line charts
+  - Clear browser cache
+  - Close other browser tabs
+  - Check network bandwidth
+  
+  **If persistent:**
+  - Contact admin to review number of configured widgets
+  - Consider increasing refresh intervals
+  - Review server capacity
+</Accordion>
+
+<Accordion title="Diagram Data Not Showing">
+  **Check:**
+  - Variables are properly assigned to diagram elements
+  - Variable IDs match configured InfluxDB variables
+  - Tooltip visibility is enabled (`show: true`)
+  - Data is available in InfluxDB for those variables
+</Accordion>
+
+## Best Practices
+
+### Monitoring Strategy
+
+<Steps>
+  <Step title="Primary View: Dashboard">
+    Use the main dashboard for ongoing operational monitoring with quick visual scans.
+  </Step>
+  
+  <Step title="Investigation: Historical Charts">
+    When anomalies appear, expand relevant charts to analyze trends and patterns.
+  </Step>
+  
+  <Step title="Context: Process Diagrams">
+    View diagrams to understand spatial relationships and process flow context.
+  </Step>
+  
+  <Step title="Alarms: Proactive Alerts">
+    Configure alarms to notify you of issues before manual monitoring would detect them.
+  </Step>
+</Steps>
+
+### Screen Layout Recommendations
+
+**Single Monitor:**
+- Dashboard as primary view
+- Quick access to charts via navigation
+
+**Dual Monitor:**
+- Monitor 1: Dashboard (full-screen)
+- Monitor 2: Rotate through key historical charts
+
+**Control Room:**
+- Large display: Process diagrams with live data
+- Operator stations: Dashboard + charts as needed
+
+## Integration Points
+
+Real-time monitoring integrates with other Centinela features:
+
+<CardGroup cols={2}>
+  <Card title="Alarms" icon="bell" href="/features/alarms">
+    Alarms trigger based on real-time data, visible in monitoring views.
+  </Card>
+  <Card title="Reports" icon="file-chart-column">
+    Historical data feeds into automated reporting systems.
+  </Card>
+</CardGroup>
+
+<Card title="Learn More" icon="book" href="/features/charts">
+  Explore chart configuration and customization options in the Charts documentation.
+</Card>

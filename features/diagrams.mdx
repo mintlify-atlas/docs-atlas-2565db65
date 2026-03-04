@@ -1,0 +1,345 @@
+---
+title: 'Diagram Editor'
+description: 'Create interactive process diagrams with live data overlays'
+icon: 'diagram-project'
+---
+
+The Diagram Editor is a powerful Konva-based canvas tool that lets you create interactive process flow diagrams with real-time data visualization overlays.
+
+## Overview
+
+Create custom diagrams by combining images, lines, text, and live sensor data to build comprehensive visual representations of your water treatment processes.
+
+<CardGroup cols={2}>
+  <Card title="Visual Design" icon="paintbrush">
+    Drag-and-drop interface with extensive drawing tools and pre-built components.
+  </Card>
+  <Card title="Live Data" icon="rss">
+    Bind InfluxDB variables to diagram elements for real-time monitoring.
+  </Card>
+  <Card title="Interactive" icon="hand-pointer">
+    Zoom, pan, select, and transform elements with intuitive controls.
+  </Card>
+  <Card title="Export & Share" icon="share-nodes">
+    Save diagrams and share with your team for operational monitoring.
+  </Card>
+</CardGroup>
+
+## Drawing Tools
+
+Access comprehensive drawing capabilities through the sidebar toolbar:
+
+### Line Tools
+
+<Tabs>
+  <Tab title="Straight Line">
+    Click to set start point, click again to complete. Right-click or ESC to cancel.
+  </Tab>
+  
+  <Tab title="Polyline">
+    Click multiple points to create complex paths. Press ENTER or right-click to finish.
+  </Tab>
+</Tabs>
+
+**Line Styling Options:**
+- Color selection (HEX color picker)
+- Stroke width (1-20px)
+- Dash patterns (solid, dashed, dotted)
+- Arrow indicators
+
+<Accordion title="Line Style Configuration">
+  ```javascript
+  {
+    color: '#3b82f6',      // Line color
+    strokeWidth: 5,        // Line thickness
+    dash: [10, 5],         // Dash pattern
+    lineCap: 'round'       // End cap style
+  }
+  ```
+</Accordion>
+
+### Image Elements
+
+<Steps>
+  <Step title="Select Image Tool">
+    Click the image icon in the sidebar to open the image selector.
+  </Step>
+  
+  <Step title="Choose from Library">
+    Browse the built-in library of water treatment equipment icons and symbols.
+  </Step>
+  
+  <Step title="Place on Canvas">
+    Images appear at default position (150x, 150y) and can be dragged to desired location.
+  </Step>
+  
+  <Step title="Transform">
+    Select image to show transform handles for resizing and rotation.
+  </Step>
+</Steps>
+
+**Image Library Categories:**
+- Pumps and motors
+- Tanks and vessels
+- Valves and actuators
+- Sensors and instruments
+- Pipes and connectors
+- Generic process symbols
+
+### Text Elements
+
+<Note>
+  Double-click on the canvas or use the text tool to add labels, annotations, and descriptions to your diagram.
+</Note>
+
+**Text Styling:**
+- Font size (8-72px)
+- Color selection
+- Font style (normal, bold, italic)
+- Real-time preview
+
+<Accordion title="Text Configuration">
+  ```javascript
+  {
+    fontSize: 16,
+    fill: '#000000',
+    fontStyle: 'normal',     // 'normal' | 'bold' | 'italic'
+    text: 'Your label here',
+    x: 200,
+    y: 150
+  }
+  ```
+</Accordion>
+
+### Variable Overlays
+
+Bind live sensor data to any diagram element:
+
+<Steps>
+  <Step title="Select Element">
+    Click an image or text element to select it.
+  </Step>
+  
+  <Step title="Open Variable List">
+    Click "Assign Variable" or use the floating variable tool.
+  </Step>
+  
+  <Step title="Choose Variable">
+    Select from available InfluxDB variables in your system.
+  </Step>
+  
+  <Step title="Configure Display">
+    Set tooltip position (center, top, bottom, left, right) and visibility.
+  </Step>
+</Steps>
+
+**Tooltip Position Panel:**
+```javascript
+{
+  dataInflux: {
+    id: 15,
+    name: 'tank_level',
+    unit: 'm³',
+    varsInflux: 'tank_a'
+  },
+  position: 'Centro',        // Display position
+  show: true,                // Visibility toggle
+  maxValue: 100,             // For percentage calculation
+  colorOn: '#00ff00',        // Boolean true color
+  colorOff: '#ff0000',       // Boolean false color
+  binaryBit: 0               // Bit position for binary values
+}
+```
+
+## Canvas Controls
+
+### Navigation
+
+<CardGroup cols={3}>
+  <Card title="Pan" icon="arrows-up-down-left-right">
+    Enable pan mode to drag the canvas view. Click and drag to reposition.
+  </Card>
+  <Card title="Zoom In" icon="magnifying-glass-plus">
+    Increase canvas scale by 5% per click for detailed editing.
+  </Card>
+  <Card title="Zoom Out" icon="magnifying-glass-minus">
+    Decrease canvas scale by 5% per click for overview.
+  </Card>
+</CardGroup>
+
+### Element Management
+
+**Selection:**
+- Click elements to select (blue transform border appears)
+- Drag to reposition
+- Use corner handles to resize
+- Rotation handles for orientation adjustments
+
+**Layering:**
+- **Send to Back**: Move selected element behind others
+- **Bring to Front**: Move selected element above others
+
+<Warning>
+  Layer order affects visibility when elements overlap. Use layer controls to manage stacking order.
+</Warning>
+
+**Deletion:**
+- Select element and press DELETE key
+- Deleted items are tracked for database synchronization
+
+### Top Navigation Bar
+
+The top toolbar provides quick access to common operations:
+
+<Tabs>
+  <Tab title="File Operations">
+    - **Save**: Store diagram to database with metadata
+    - **Clear**: Remove all elements (with confirmation)
+  </Tab>
+  
+  <Tab title="Edit Controls">
+    - **Undo**: Remove last added element
+    - **Layer controls**: Manage element stacking
+  </Tab>
+  
+  <Tab title="View Controls">
+    - **Zoom in/out**: Adjust canvas scale
+    - **Pan mode**: Toggle canvas dragging
+  </Tab>
+</Tabs>
+
+## Diagram Management
+
+### Saving Diagrams
+
+<Steps>
+  <Step title="Click Save">
+    Click the save button in the top navigation bar.
+  </Step>
+  
+  <Step title="Enter Name">
+    Provide a descriptive name for your diagram in the modal dialog.
+  </Step>
+  
+  <Step title="Database Storage">
+    System saves all elements, metadata, and variable bindings.
+  </Step>
+  
+  <Step title="Automatic Redirect">
+    After successful save, redirects to diagram list view.
+  </Step>
+</Steps>
+
+**Saved Data Structure:**
+```javascript
+{
+  elements: [/* All images, lines, text, polylines */],
+  circles: [/* Circle markers */],
+  diagramMetadata: {
+    id: null,                    // Auto-assigned on creation
+    title: 'Process Overview',   // User-provided name
+    backgroundColor: '#ffffff',  // Canvas background
+    backgroundImg: ''            // Optional background image
+  },
+  deleted: {
+    lines: [],
+    texts: [],
+    images: [],
+    polylines: []
+  }
+}
+```
+
+### Editing Existing Diagrams
+
+When opening a saved diagram (via URL parameter `?id=123`):
+
+1. System loads all elements from database
+2. Canvas reconstructs the complete diagram
+3. Variable bindings are restored
+4. Edit and save updates the existing record
+
+<Note>
+  New elements added during editing are tracked separately to optimize database updates. Only changed elements are synchronized.
+</Note>
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| **ESC** | Cancel current drawing operation or deselect |
+| **ENTER** | Finish polyline drawing |
+| **DELETE** | Remove selected element |
+| **Right Click** | Cancel line drawing or finish polyline |
+
+## Advanced Features
+
+### State Management
+
+The diagram editor uses custom React hooks for organized state management:
+
+- **useDiagramState**: Elements, selection, deletion tracking
+- **useDrawingTools**: Line, polyline, and image drawing logic
+- **useTooltipManager**: Variable overlay configuration
+- **useTextTools**: Text creation and editing
+
+### Performance Optimization
+
+<CardGroup cols={2}>
+  <Card title="Efficient Rendering" icon="bolt">
+    Konva canvas uses WebGL for smooth rendering of complex diagrams.
+  </Card>
+  <Card title="Selective Updates" icon="filter">
+    Only modified elements are synchronized with the database.
+  </Card>
+</CardGroup>
+
+### Background Customization
+
+Set custom background colors or images for your diagrams:
+
+```javascript
+diagramMetadata: {
+  backgroundColor: '#f0f0f0',
+  backgroundImg: '/path/to/floorplan.png'
+}
+```
+
+## Use Cases
+
+<Accordion title="Process Flow Diagrams">
+  Create P&IDs (Piping and Instrumentation Diagrams) showing the complete water treatment process with pumps, tanks, valves, and flow directions.
+</Accordion>
+
+<Accordion title="Equipment Layouts">
+  Design facility layouts with equipment positions and overlay real-time operational status on each component.
+</Accordion>
+
+<Accordion title="Monitoring Dashboards">
+  Build custom visual dashboards that combine schematic representations with live sensor data for at-a-glance monitoring.
+</Accordion>
+
+<Accordion title="Training Materials">
+  Develop annotated diagrams for training purposes, showing process flows and key measurement points.
+</Accordion>
+
+## Best Practices
+
+<Warning>
+  Always save your work frequently. While the system tracks changes, unsaved diagrams will be lost if you navigate away.
+</Warning>
+
+**Recommended workflow:**
+
+1. Plan your diagram layout before starting
+2. Use the zoom controls to work at comfortable detail levels
+3. Assign variables after completing the visual layout
+4. Test variable displays in view mode
+5. Use consistent naming for easy identification
+6. Document complex diagrams with text annotations
+
+## Viewing Diagrams
+
+<Card title="View Mode" icon="eye" href="/features/real-time-monitoring">
+  Learn about viewing saved diagrams with live data updates in the Real-Time Monitoring section.
+</Card>

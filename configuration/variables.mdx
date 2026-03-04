@@ -1,0 +1,365 @@
+---
+title: Variable Configuration
+description: Manage and configure InfluxDB variables for monitoring water treatment system parameters
+---
+
+Variables are the core data points in the Centinela monitoring system. They represent sensor readings, calculated values, and system metrics stored in InfluxDB.
+
+## Overview
+
+The variable configuration module allows you to:
+
+- Create and manage monitoring variables
+- Define variable properties (name, unit, process)
+- Mark variables as calculated or measured
+- Filter and search variables by attributes
+- Associate variables with charts and diagrams
+
+## Variable Properties
+
+<ParamField path="name" type="string" required>
+  Unique identifier for the variable (e.g., "Tank_A_Level", "Pump_1_Flow_Rate")
+</ParamField>
+
+<ParamField path="unit" type="string">
+  Unit of measurement for the variable
+  
+  **Common Units:**
+  - Volume: `L`, `m³`, `gal`
+  - Pressure: `bar`, `psi`, `kPa`
+  - Flow: `L/min`, `m³/h`, `GPM`
+  - Temperature: `°C`, `°F`, `K`
+  - Percentage: `%`
+</ParamField>
+
+<ParamField path="calc" type="boolean" default={false}>
+  Indicates if the variable is calculated from other variables or directly measured
+  
+  - `true` = Calculated/derived value
+  - `false` = Direct sensor measurement
+</ParamField>
+
+<ParamField path="process" type="string">
+  Process area or system component the variable belongs to
+  
+  **Examples:**
+  - "Pre-treatment"
+  - "Filtration"
+  - "Chlorination"
+  - "Distribution"
+  - "Storage"
+</ParamField>
+
+## Creating Variables
+
+<Steps>
+  <Step title="Access Variables Module">
+    Navigate to Configuration > Variables in the main menu.
+  </Step>
+  
+  <Step title="Click Create Variable">
+    Click the "Crear Variable" button in the top-right corner.
+  </Step>
+  
+  <Step title="Enter Variable Details">
+    Fill in the variable properties in the modal form:
+    - Name (required)
+    - Unit (optional)
+    - Process (optional)
+    - Calculation flag (optional)
+  </Step>
+  
+  <Step title="Save Variable">
+    Click Save to create the variable. It will immediately appear in the variables table.
+  </Step>
+</Steps>
+
+## Variable Table
+
+The variables table displays all configured variables with the following columns:
+
+| Column | Description |
+|--------|-------------|
+| **ID** | Unique variable identifier |
+| **Nombre** | Variable name |
+| **Unidad** | Unit of measurement |
+| **Cálculo** | "Si" if calculated, "No" if measured |
+| **Proceso** | Associated process area |
+| **Acciones** | Edit and Delete buttons |
+
+**Source Reference:** `/src/modules/ConfigVars/views/Vars.jsx:54-96`
+
+## Filtering Variables
+
+The system provides powerful filtering capabilities to quickly find variables:
+
+<Tabs>
+  <Tab title="By Unit">
+    Filter variables by their unit of measurement. The dropdown automatically populates with all units currently in use.
+    
+    ```javascript
+    const unitList = Array.from(
+      new Set(vars.map(v => v.unit).filter(Boolean))
+    )
+    ```
+  </Tab>
+  
+  <Tab title="By Calculation Type">
+    Filter to show only calculated variables, only measured variables, or all variables.
+    
+    **Options:**
+    - Todas (All)
+    - Sí (Calculated only)
+    - No (Measured only)
+  </Tab>
+  
+  <Tab title="By Process">
+    Filter variables by their associated process area. The dropdown shows all defined processes.
+    
+    ```javascript
+    const processUniques = Array.from(
+      new Set(vars.map(v => v.process).filter(Boolean))
+    )
+    ```
+  </Tab>
+</Tabs>
+
+**Filter Implementation:**
+
+```javascript
+const onSubmit = ({ process, calc, unit }) => {
+  let filtered = [...varsOriginal]
+  
+  // Filter by process
+  if (process) {
+    filtered = filtered.filter(v => v.process === process)
+  }
+  
+  // Filter by calculation type
+  if (calc === "true") {
+    filtered = filtered.filter(v => v.calc === true)
+  } else if (calc === "false") {
+    filtered = filtered.filter(v => v.calc === false)
+  }
+  
+  // Filter by unit
+  if (unit) {
+    filtered = filtered.filter(v => v.unit === unit)
+  }
+  
+  setVars(filtered)
+}
+```
+
+**Source Reference:** `/src/modules/ConfigVars/views/Vars.jsx:120-141`
+
+## Editing Variables
+
+<Steps>
+  <Step title="Locate Variable">
+    Use the filter tools or search to find the variable you want to modify.
+  </Step>
+  
+  <Step title="Click Edit Button">
+    Click the blue "Editar" button in the Actions column.
+  </Step>
+  
+  <Step title="Modify Properties">
+    Update any variable properties in the modal form.
+  </Step>
+  
+  <Step title="Save Changes">
+    Click Save. The changes will be reflected immediately in the table.
+  </Step>
+</Steps>
+
+<Warning>
+  Editing a variable's name may affect existing charts and diagrams that reference it. Ensure all dependencies are updated accordingly.
+</Warning>
+
+## Deleting Variables
+
+<Steps>
+  <Step title="Click Delete Button">
+    Click the red "Eliminar" button in the Actions column.
+  </Step>
+  
+  <Step title="Confirm Deletion">
+    A confirmation dialog will appear:
+    
+    ```javascript
+    Swal.fire({
+      icon: 'warning',
+      title: 'Atencion!',
+      html: 'Esta seguro que desea eliminar esta variable?',
+      showConfirmButton: true,
+      confirmButtonText: 'Si, eliminar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar'
+    })
+    ```
+  </Step>
+  
+  <Step title="Deletion Processed">
+    If confirmed, the variable is deleted and the table refreshes automatically.
+  </Step>
+</Steps>
+
+<Warning>
+  Deleting a variable that is used in charts, alarms, or diagrams will cause those components to malfunction. Always check dependencies before deletion.
+</Warning>
+
+## API Integration
+
+Variables are retrieved and managed through the following API endpoints:
+
+### Get All Variables
+
+```javascript
+import { getVarsInflux } from '../../DrawDiagram/components/Fields/actions'
+
+const vars = await getVarsInflux()
+// Returns array of variable objects
+```
+
+### Delete Variable
+
+```javascript
+const url = `${backend[import.meta.env.VITE_APP_NAME]}/deleteVar/${id}`
+const { data } = await request(url, 'POST')
+```
+
+**Source Reference:** `/src/modules/ConfigVars/views/Vars.jsx:22-53`
+
+## Variable Usage
+
+Variables are used throughout the Centinela system:
+
+<Accordion title="In Charts">
+  Variables are assigned to charts to visualize real-time and historical data. Each chart type requires specific variable configurations.
+  
+  **Example:**
+  ```javascript
+  {
+    idVar: 42,              // Variable ID
+    name: "Tank A Level",
+    unit: "L",
+    maxValue: 1000
+  }
+  ```
+</Accordion>
+
+<Accordion title="In Diagrams">
+  Variables can be overlaid on diagram images to show live values at specific locations. Position and display style are configurable.
+  
+  **Data Structure:**
+  ```javascript
+  dataInflux: {
+    id: 42,
+    name: "Flow Rate",
+    position: "Centro",    // Top, Centro, Bottom
+    show: true,
+    maxValue: 100,         // For percentage displays
+    booleanColors: {...}   // For binary variables
+  }
+  ```
+</Accordion>
+
+<Accordion title="In Alarms">
+  Variables are monitored by alarms to trigger notifications when values exceed thresholds.
+  
+  **Reference:** See [Alarm Configuration](/configuration/alarms) for details.
+</Accordion>
+
+## Data Structure
+
+Variables retrieved from the API have the following structure:
+
+```typescript
+interface InfluxVar {
+  id: number
+  name: string
+  unit?: string
+  calc: boolean
+  process?: string
+}
+```
+
+**Example Variable:**
+
+```json
+{
+  "id": 42,
+  "name": "Tank_A_Level",
+  "unit": "L",
+  "calc": false,
+  "process": "Storage"
+}
+```
+
+## Best Practices
+
+<Accordion title="Naming Conventions">
+  Use clear, descriptive names that include:
+  - Equipment/location identifier (e.g., Tank_A, Pump_2)
+  - Measured parameter (e.g., Level, Flow, Pressure)
+  - Avoid spaces; use underscores or camelCase
+  
+  **Good Examples:**
+  - `Tank_A_Level`
+  - `Pump_2_Flow_Rate`
+  - `Filter_1_Pressure_Drop`
+  
+  **Avoid:**
+  - `var1`
+  - `temp`
+  - `a level`
+</Accordion>
+
+<Accordion title="Process Organization">
+  Group related variables under consistent process names:
+  - Use standardized process names across the facility
+  - Create a process hierarchy if needed
+  - Document process definitions
+</Accordion>
+
+<Accordion title="Calculated Variables">
+  When creating calculated variables:
+  - Mark them with `calc: true`
+  - Document the calculation formula separately
+  - Ensure source variables exist and are accurate
+  - Consider using appropriate units for derived values
+</Accordion>
+
+<Note>
+  The variable table supports pagination (10 items per page) and full-text search across all columns. Use these features to navigate large variable sets efficiently.
+</Note>
+
+## Troubleshooting
+
+<Accordion title="Variable Not Appearing in Charts">
+  **Cause:** The variable may not be properly registered in InfluxDB.
+  
+  **Solution:**
+  1. Verify the variable exists in the variables table
+  2. Check that data is being written to InfluxDB for this variable
+  3. Refresh the chart configuration page
+</Accordion>
+
+<Accordion title="Filter Returns No Results">
+  **Cause:** Filter combination too restrictive or no matching variables.
+  
+  **Solution:**
+  1. Clear filters and apply them one at a time
+  2. Verify the filter values exist in the database
+  3. Check for typos in manually entered process names
+</Accordion>
+
+<Accordion title="Cannot Delete Variable">
+  **Cause:** Variable is referenced in charts, alarms, or diagrams.
+  
+  **Solution:**
+  1. Identify all references using search
+  2. Remove or reassign references
+  3. Then attempt deletion again
+</Accordion>

@@ -1,0 +1,313 @@
+---
+title: 'Boolean Chart'
+description: 'Visual LED indicator component for displaying binary states (on/off, active/inactive) with customizable labels and colors'
+icon: 'toggle-on'
+---
+
+## Overview
+
+The Boolean Chart component renders a realistic LED indicator that displays on/off states for equipment, pumps, valves, or any binary sensor. Features include glowing effects, custom labels, and automatic "no data" handling.
+
+## Props
+
+<ParamField path="value" type="boolean | 'Sin datos'" required>
+  The current state of the indicator.
+  
+  - `true`: Shows "on" state with glow effect
+  - `false`: Shows "off" state (dimmed)
+  - `'Sin datos'`: Shows gray "no data" state
+  
+  ```javascript
+  value={true}           // ON state
+  value={false}          // OFF state
+  value="Sin datos"     // No data available
+  ```
+</ParamField>
+
+<ParamField path="textOn" type="string" default="Encendido">
+  Label displayed when `value` is `true`.
+  
+  ```javascript
+  textOn="Activo"        // Custom ON label
+  textOn="Bomba ON"      // Equipment-specific label
+  ```
+</ParamField>
+
+<ParamField path="textOff" type="string" default="Apagado">
+  Label displayed when `value` is `false`.
+  
+  ```javascript
+  textOff="Inactivo"     // Custom OFF label
+  textOff="Bomba OFF"    // Equipment-specific label
+  ```
+</ParamField>
+
+<ParamField path="colorOn" type="string" default="#00ff00">
+  LED color in the ON state. Accepts hex color codes.
+  
+  ```javascript
+  colorOn="#00ff00"      // Green (default)
+  colorOn="#3b82f6"      // Blue
+  colorOn="#f59e0b"      // Amber
+  ```
+</ParamField>
+
+<ParamField path="colorOff" type="string" default="#444">
+  LED base color in the OFF state (before radial gradient is applied).
+  
+  ```javascript
+  colorOff="#444"        // Dark gray (default)
+  colorOff="#1f2937"     // Darker gray
+  ```
+</ParamField>
+
+## Visual States
+
+The component renders three distinct visual states:
+
+### ON State (`value = true`)
+
+- **LED Color**: Radial gradient from light center to dark edge using `colorOn`
+- **Glow Effect**: Strong shadow blur (35px) in the ON color
+- **Text**: Displays `textOn` in dark green (#065f46)
+- **Appearance**: Bright, glowing LED with pronounced radial gradient
+
+### OFF State (`value = false`)
+
+- **LED Color**: Radial gradient from gray (#9ca3af) to dark gray (#1f2937)
+- **Glow Effect**: Minimal shadow blur (10px) in black
+- **Text**: Displays `textOff` in dark gray (#374151)
+- **Appearance**: Dim, inactive LED
+
+### No Data State (`value = 'Sin datos'`)
+
+- **LED Color**: Radial gradient from light gray (#e5e7eb) to medium gray (#6b7280)
+- **Glow Effect**: Subtle shadow blur (8px)
+- **Text**: Displays "Sin datos" in gray (#6b7280)
+- **Appearance**: Neutral, inactive state indicating missing data
+
+## Visual Design Elements
+
+The component creates a realistic LED indicator using multiple ECharts series layers:
+
+<ResponseField name="Main LED (Series 0)">
+  **Size**: 110px circle
+  
+  **Style**: Radial gradient with 3 color stops for depth effect
+  
+  **Shadow**: Dynamic blur based on state (8-35px)
+</ResponseField>
+
+<ResponseField name="Outer Ring (Series 1)">
+  **Size**: 130px circle
+  
+  **Style**: Transparent fill with 6px dark border (#1f2937)
+  
+  **Shadow**: 15px blur for depth and dimension
+</ResponseField>
+
+<ResponseField name="Status Text (Series 2)">
+  **Position**: 82% from top (below LED)
+  
+  **Style**: 20px bold font, center-aligned
+  
+  **Color**: Dynamic based on state
+</ResponseField>
+
+## Configuration Schema
+
+The component validates configuration using Zod schema:
+
+```javascript
+// From BooleanChartSchema.js
+{
+  title: string (min 1 char, required),
+  textOn: string (min 1 char, required),
+  textOff: string (min 1 char, required),
+  colorOn: string (hex format, required),
+  colorOff: string (hex format, required),
+  order: number (min 1, required)
+}
+```
+
+<Note>
+  **Color Validation**: `colorOn` and `colorOff` must be different hex colors (e.g., `#00ff00`). The schema enforces this with a custom refinement.
+</Note>
+
+## Usage Examples
+
+### Basic Pump Status
+
+```jsx
+import BooleanChart from './components/BooleanChart'
+
+function PumpStatusIndicator({ pumpRunning }) {
+  return (
+    <div style={{ width: '200px', height: '200px' }}>
+      <BooleanChart
+        value={pumpRunning}
+        textOn="Bomba Activa"
+        textOff="Bomba Detenida"
+        colorOn="#10b981"
+      />
+    </div>
+  )
+}
+```
+
+### Chlorine Injection System
+
+```jsx
+import BooleanChart from './components/BooleanChart'
+
+function ChlorineInjectionStatus({ isInjecting, dataAvailable }) {
+  const value = dataAvailable ? isInjecting : 'Sin datos'
+  
+  return (
+    <div style={{ width: '250px', height: '250px' }}>
+      <BooleanChart
+        value={value}
+        textOn="Inyectando Cloro"
+        textOff="Inyección Detenida"
+        colorOn="#22c55e"
+        colorOff="#374151"
+      />
+    </div>
+  )
+}
+```
+
+### Alarm Indicator
+
+```jsx
+import BooleanChart from './components/BooleanChart'
+
+function AlarmIndicator({ alarmActive }) {
+  return (
+    <div style={{ width: '180px', height: '180px' }}>
+      <BooleanChart
+        value={alarmActive}
+        textOn="ALARMA"
+        textOff="Normal"
+        colorOn="#ef4444"  // Red for alarm
+        colorOff="#6b7280"
+      />
+    </div>
+  )
+}
+```
+
+### Valve Position Indicator
+
+```jsx
+import BooleanChart from './components/BooleanChart'
+
+function ValvePositionIndicator({ isOpen }) {
+  return (
+    <div style={{ width: '200px', height: '200px' }}>
+      <BooleanChart
+        value={isOpen}
+        textOn="Válvula Abierta"
+        textOff="Válvula Cerrada"
+        colorOn="#3b82f6"  // Blue
+        colorOff="#1f2937"
+      />
+    </div>
+  )
+}
+```
+
+### Multi-Indicator Dashboard
+
+```jsx
+import BooleanChart from './components/BooleanChart'
+
+function EquipmentDashboard({ equipment }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+      <div style={{ height: '200px' }}>
+        <h3>Bomba Principal</h3>
+        <BooleanChart
+          value={equipment.mainPump}
+          textOn="Operando"
+          textOff="Detenida"
+          colorOn="#10b981"
+        />
+      </div>
+      
+      <div style={{ height: '200px' }}>
+        <h3>Bomba Respaldo</h3>
+        <BooleanChart
+          value={equipment.backupPump}
+          textOn="Operando"
+          textOff="Detenida"
+          colorOn="#3b82f6"
+        />
+      </div>
+      
+      <div style={{ height: '200px' }}>
+        <h3>Sistema Cloración</h3>
+        <BooleanChart
+          value={equipment.chlorination}
+          textOn="Activo"
+          textOff="Inactivo"
+          colorOn="#f59e0b"
+        />
+      </div>
+    </div>
+  )
+}
+```
+
+## Color Recommendations
+
+<Note>
+  Use semantically appropriate colors for better user understanding:
+</Note>
+
+| Use Case | Suggested Color | Hex Code |
+|----------|----------------|----------|
+| Normal operation | Green | `#10b981` |
+| Warning/attention | Amber | `#f59e0b` |
+| Alarm/critical | Red | `#ef4444` |
+| Information | Blue | `#3b82f6` |
+| Success | Green (bright) | `#22c55e` |
+| Standby | Gray | `#6b7280` |
+
+## Accessibility Considerations
+
+- **Color Alone**: Don't rely solely on color to convey state - text labels are required
+- **Contrast**: Ensure sufficient contrast between LED and background
+- **Text Labels**: Use clear, descriptive labels (e.g., "Bomba Activa" vs just "ON")
+- **Size**: Minimum container size of 150×150px recommended for legibility
+
+## Performance
+
+- **Rendering**: Static chart (no animations by default)
+- **Updates**: Efficient re-renders when `value` prop changes
+- **Memory**: Minimal footprint - single ECharts instance per component
+
+## Responsive Behavior
+
+The component automatically scales to fit its container:
+
+```jsx
+// Square container recommended for optimal appearance
+<div style={{ width: '100%', maxWidth: '300px', aspectRatio: '1/1' }}>
+  <BooleanChart value={state} />
+</div>
+```
+
+## Related Components
+
+- [Gauge](/components/charts/gauge) - For displaying numeric values with thresholds
+- [Liquid Fill](/components/charts/liquid-fill) - For percentage-based indicators
+- [Line Chart](/components/charts/line-chart) - For historical state trends
+
+## Source Reference
+
+**File**: `~/workspace/source/src/modules/Charts/components/BooleanChart.jsx:4`
+
+**Schema**: `~/workspace/source/src/modules/Charts/schemas/BooleanChartSchema.js`
+
+Built with Apache ECharts for the Centinela water treatment monitoring system.

@@ -1,0 +1,416 @@
+---
+title: 'External User Access'
+description: 'Managing external users with limited access to consumption data'
+icon: 'user-lock'
+---
+
+## Overview
+
+External users (profile 5) are stakeholders who need limited access to view consumption data and charts without full system access. This feature is commonly used for:
+
+- Water consumers viewing their usage
+- External partners monitoring specific metrics
+- Read-only observers of system data
+
+<Info>
+  External users have a completely separate interface and cannot access internal system features, configurations, or sensitive data.
+</Info>
+
+## Identifying External Users
+
+The system identifies external users by their profile ID:
+
+```javascript
+// App.jsx:45-46
+const authUser = storage.get('usuario')
+const isExternalUser = authUser && authUser.profile === 5
+```
+
+## Access Restrictions
+
+External users have heavily restricted access compared to internal users:
+
+### Route Restrictions
+
+```javascript
+// App.jsx:89-92
+const externalRoutes = [
+  { path: '/', element: <ExternalUser /> }
+]
+
+// App.jsx:126-131
+{(isExternalUser ? externalRoutes : userRoutes).map((route) => (
+  <Route key={route.path} path={route.path} element={route.element} />
+))}
+
+{isExternalUser && <Route path="*" element={<Navigate to="/" />} />}
+```
+
+<Warning>
+  External users attempting to access any route other than `/` are automatically redirected to their dashboard. This prevents unauthorized access to configuration pages or sensitive system data.
+</Warning>
+
+### Feature Access Matrix
+
+| Feature | External User Access |
+|---------|---------------------|
+| View Consumption Charts | ✅ Yes |
+| View Invoice Data | ✅ Yes |
+| View Home Dashboard | ✅ Limited |
+| Search Entry Records | ✅ Yes |
+| User Management | ❌ No |
+| System Configuration | ❌ No |
+| Equipment Control | ❌ No |
+| Alarm Configuration | ❌ No |
+| Menu Customization | ❌ No |
+| Data Export | ❌ No |
+
+## External User Interface
+
+The external user dashboard provides a focused, read-only view of relevant data:
+
+```javascript
+// ExternalUsers/views/index.jsx:20-54
+return (
+  <div className="flex flex-col w-full h-full gap-6">
+    <CardCustom className="w-full bg-white dark:bg-gray-900 shadow-lg rounded-2xl p-6">
+      {/* Header */}
+      <div className="flex flex-col">
+        <FormLabel className='w-full text-center !text-3xl font-bold mb-4'>
+          Gráficas de consumo{user?.name ? ` - ${user.name}` : ''}
+        </FormLabel>
+        
+        <CardCustom className="w-full !bg-gray-200 dark:bg-gray-800">
+          <Home />
+        </CardCustom>
+      </div>
+
+      {/* Invoice Tables and Charts */}
+      <TabsInvoice />
+      <ChartInvoice />
+
+      {/* Entry Records Search */}
+      <div className="flex flex-col">
+        <FormLabel className='w-full text-center !text-xl font-bold'>
+          Buscar registros de ingreso
+        </FormLabel>
+        
+        <CardCustom className="w-full !bg-gray-200 dark:bg-gray-800">
+          <ChartsDashboard />
+        </CardCustom>
+      </div>
+    </CardCustom>
+  </div>
+)
+```
+
+### Dashboard Components
+
+The external user interface consists of three main sections:
+
+<Steps>
+  <Step title="Consumption Charts Header">
+    Displays personalized greeting with user's name and overview metrics:
+    
+    ```javascript
+    // ExternalUsers/views/index.jsx:28-33
+    <FormLabel className='w-full text-center !text-3xl font-bold mb-4'>
+      Gráficas de consumo{user?.name ? ` - ${user.name}` : ''}
+    </FormLabel>
+    <CardCustom className="w-full !bg-gray-200 dark:bg-gray-800">
+      <Home />
+    </CardCustom>
+    ```
+  </Step>
+  
+  <Step title="Invoice Data">
+    Shows consumption invoices with tabs and charts:
+    
+    ```javascript
+    // ExternalUsers/views/index.jsx:37-39
+    {/* Tablas y graficos de facturacion */}
+    <TabsInvoice />
+    <ChartInvoice />
+    ```
+    
+    Components:
+    - `TabsInvoice`: Tabular invoice data with filtering
+    - `ChartInvoice`: Visual charts of consumption patterns
+  </Step>
+  
+  <Step title="Entry Records">
+    Allows searching and viewing historical entry data:
+    
+    ```javascript
+    // ExternalUsers/views/index.jsx:42-49
+    <FormLabel className='w-full text-center !text-xl font-bold'>
+      Buscar registros de ingreso
+    </FormLabel>
+    <CardCustom className="w-full !bg-gray-200 dark:bg-gray-800">
+      <ChartsDashboard />
+    </CardCustom>
+    ```
+  </Step>
+</Steps>
+
+## User Data Access
+
+External users can only access their own data:
+
+```javascript
+// ExternalUsers/views/index.jsx:11-13
+const [loading, setLoading] = useState(true)
+const user = storage.get('usuario')
+```
+
+The user object from storage contains:
+- User identification
+- Assigned profile (5 for external users)
+- Name and basic information
+- No access to system-wide configuration
+
+<Note>
+  External users cannot view or access data from other users or organizations. Data is automatically filtered based on their authentication credentials.
+</Note>
+
+## Authentication Flow
+
+External users follow the same authentication flow as internal users:
+
+<Steps>
+  <Step title="Login">
+    External users log in through the standard login page with email/password
+  </Step>
+  
+  <Step title="Profile Check">
+    System identifies user profile:
+    
+    ```javascript
+    // App.jsx:46
+    const isExternalUser = authUser && authUser.profile === 5
+    ```
+  </Step>
+  
+  <Step title="Route Assignment">
+    User is assigned to external routes:
+    
+    ```javascript
+    // App.jsx:126
+    {(isExternalUser ? externalRoutes : userRoutes).map((route) => ...)}
+    ```
+  </Step>
+  
+  <Step title="Dashboard Access">
+    External user is directed to their limited dashboard
+  </Step>
+</Steps>
+
+## UI/UX Considerations
+
+The external user interface is designed for simplicity and clarity:
+
+### Styling
+
+```javascript
+// ExternalUsers/views/index.jsx:21-25
+<div className="flex flex-col w-full h-full gap-6">
+  <CardCustom className="w-full bg-white dark:bg-gray-900 shadow-lg rounded-2xl p-6 flex flex-col gap-6 transition-all">
+```
+
+Features:
+- Clean, card-based layout
+- Dark mode support
+- Responsive design
+- Clear visual hierarchy
+
+### Loading States
+
+```javascript
+// ExternalUsers/views/index.jsx:16-18
+useEffect(() => {
+  setLoading(false);
+}, [])
+
+// ExternalUsers/views/index.jsx:22-24
+{loading ? (
+  <LoaderComponent />
+) : (
+  // Dashboard content
+)}
+```
+
+<Info>
+  The interface shows a loading spinner while fetching user data, ensuring a smooth user experience.
+</Info>
+
+## Security Considerations
+
+### Route Protection
+
+The system enforces strict route protection:
+
+```javascript
+// App.jsx:130
+{isExternalUser && <Route path="*" element={<Navigate to="/" />} />}
+```
+
+Any attempt to access unauthorized routes results in automatic redirection.
+
+### Data Isolation
+
+<Warning>
+  External users must never have access to:
+  - Other users' data
+  - System configurations
+  - Administrative functions
+  - Equipment controls
+  - Security settings
+</Warning>
+
+Implement proper backend filtering to ensure external users only receive data they're authorized to view.
+
+## Creating External Users
+
+To create an external user:
+
+<Steps>
+  <Step title="Create User Account">
+    Use the user management interface to create a new user account
+  </Step>
+  
+  <Step title="Assign Profile 5">
+    Set `id_profile` to `5` for external access:
+    
+    ```javascript
+    {
+      id: 100,
+      first_name: 'External',
+      last_name: 'User',
+      email: 'external@example.com',
+      password: 'SecurePass123!',
+      id_profile: 5,  // External user
+      status: 1,
+      ...
+    }
+    ```
+  </Step>
+  
+  <Step title="Configure Access">
+    Ensure the user has appropriate data access permissions in the backend
+  </Step>
+  
+  <Step title="Test Login">
+    Verify the user can log in and only sees their authorized data
+  </Step>
+</Steps>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Minimal Access" icon="shield-halved">
+    Only grant external users access to data they absolutely need
+  </Card>
+  
+  <Card title="Read-Only" icon="eye">
+    External users should never be able to modify system data or configurations
+  </Card>
+  
+  <Card title="Regular Audits" icon="list-check">
+    Monitor external user activity and review access logs regularly
+  </Card>
+  
+  <Card title="Clear Communication" icon="comment">
+    Inform external users about their limited access scope
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+### External User Sees Internal Routes
+
+**Problem**: External user can access internal system pages
+
+**Solution**: Verify profile assignment:
+
+```javascript
+const authUser = storage.get('usuario')
+console.log('Profile:', authUser.profile)  // Should be 5
+```
+
+### Dashboard Not Loading
+
+**Problem**: External user dashboard shows loading spinner indefinitely
+
+**Solution**: Check user data is properly stored:
+
+```javascript
+const user = storage.get('usuario')
+console.log('User data:', user)
+```
+
+### Access Denied Errors
+
+**Problem**: External user receives access denied messages
+
+**Solution**: 
+1. Verify user status is active (`status: 1`)
+2. Check JWT token is valid
+3. Ensure backend API returns proper user data
+
+<Note>
+  External users should have a seamless experience. If they encounter errors, check both frontend route protection and backend data filtering.
+</Note>
+
+## Integration Examples
+
+### Checking User Type in Components
+
+```javascript
+import { storage } from '../storage/storage'
+
+const MyComponent = () => {
+  const user = storage.get('usuario')
+  const isExternal = user?.profile === 5
+  
+  return (
+    <div>
+      {isExternal ? (
+        <LimitedView />
+      ) : (
+        <FullAccessView />
+      )}
+    </div>
+  )
+}
+```
+
+### Backend API Filtering
+
+```javascript
+// Example backend endpoint
+app.get('/api/consumption-data', authenticateToken, (req, res) => {
+  const user = req.user
+  
+  if (user.profile === 5) {
+    // Filter to only user's own data
+    const data = getConsumptionData({ userId: user.id })
+    return res.json(data)
+  }
+  
+  // Internal users get full data
+  const data = getConsumptionData()
+  res.json(data)
+})
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="shield" href="/user-management/authentication">
+    Understand the authentication flow for all users
+  </Card>
+  
+  <Card title="User Roles" icon="user-shield" href="/user-management/roles">
+    Learn about other user profiles and permissions
+  </Card>
+</CardGroup>

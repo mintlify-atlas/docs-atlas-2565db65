@@ -1,0 +1,504 @@
+---
+title: 'Alarms'
+description: 'Configure and manage alarm conditions for monitoring variables'
+---
+
+## Overview
+
+Alarms in Centinela monitor variables and trigger notifications when specific conditions are met. They support both simple conditions and complex combined logic.
+
+## Alarm Types
+
+### Simple Alarms
+
+Monitor a single variable against a threshold:
+- `Presión > 5 bar`
+- `pH < 6.5`
+- `Cloro entre 0.5 y 1.5 mg/L`
+
+### Combined Alarms
+
+Monitor multiple variables with logical operators:
+- `(Presión > 5) AND (Caudal < 10)`
+- `(Temperatura > 30) OR (Humedad > 80)`
+
+## List All Alarms
+
+Retrieve all configured alarms:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/getAlarms" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Presión Alta Sistema Principal",
+      "type": "single",
+      "id_influxvars": 12,
+      "var_name": "Presión Principal",
+      "condition": ">",
+      "value": 5.5,
+      "value2": null,
+      "repeatInterval": 15,
+      "status": true,
+      "hasTimeRange": true,
+      "startime": "08:00",
+      "endtime": "18:00"
+    },
+    {
+      "id": 2,
+      "name": "Cloro Fuera de Rango",
+      "type": "single",
+      "id_influxvars": 8,
+      "var_name": "Cloro Residual",
+      "condition": "entre",
+      "value": 0.5,
+      "value2": 1.5,
+      "repeatInterval": 30,
+      "status": true,
+      "hasTimeRange": false,
+      "startime": null,
+      "endtime": null
+    },
+    {
+      "id": 3,
+      "name": "Condición Crítica Filtros",
+      "type": "combined",
+      "id_influxvars": 15,
+      "var_name": "Presión Diferencial",
+      "condition": ">",
+      "value": 2.0,
+      "value2": null,
+      "logicOperator": "AND",
+      "secondaryVariableId": 16,
+      "secondaryVarName": "Caudal Filtros",
+      "secondaryCondition": "<",
+      "secondaryValue": 100,
+      "repeatInterval": 10,
+      "status": true,
+      "hasTimeRange": false,
+      "startime": null,
+      "endtime": null
+    }
+  ]
+}
+```
+
+<ResponseField name="id" type="integer">
+  Unique alarm identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Alarm display name
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Alarm type: `single` or `combined`
+</ResponseField>
+
+<ResponseField name="id_influxvars" type="integer">
+  Primary variable ID being monitored
+</ResponseField>
+
+<ResponseField name="var_name" type="string">
+  Primary variable name
+</ResponseField>
+
+<ResponseField name="condition" type="string">
+  Comparison operator: `>`, `<`, `=`, `>=`, `<=`, `entre`
+</ResponseField>
+
+<ResponseField name="value" type="number">
+  Threshold value or lower bound (for "entre")
+</ResponseField>
+
+<ResponseField name="value2" type="number">
+  Upper bound value (only for "entre" condition)
+</ResponseField>
+
+<ResponseField name="repeatInterval" type="integer">
+  Minutes between alarm notifications
+</ResponseField>
+
+<ResponseField name="status" type="boolean">
+  Whether the alarm is active
+</ResponseField>
+
+<ResponseField name="hasTimeRange" type="boolean">
+  Whether the alarm is restricted to specific hours
+</ResponseField>
+
+<ResponseField name="startime" type="string">
+  Start time (HH:MM format) if hasTimeRange is true
+</ResponseField>
+
+<ResponseField name="endtime" type="string">
+  End time (HH:MM format) if hasTimeRange is true
+</ResponseField>
+
+<ResponseField name="logicOperator" type="string">
+  Logical operator for combined alarms: `AND` or `OR`
+</ResponseField>
+
+<ResponseField name="secondaryVariableId" type="integer">
+  Secondary variable ID (combined alarms only)
+</ResponseField>
+
+<ResponseField name="secondaryCondition" type="string">
+  Secondary condition operator (combined alarms only)
+</ResponseField>
+
+<ResponseField name="secondaryValue" type="number">
+  Secondary threshold value (combined alarms only)
+</ResponseField>
+
+## Create Alarm
+
+Create a new alarm:
+
+### Simple Alarm
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/createAlarm" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "pH Bajo",
+    "type": "single",
+    "id_influxvars": 7,
+    "condition": "<",
+    "value": 6.5,
+    "repeatInterval": 20
+  }'
+```
+
+### Alarm with Time Range
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/createAlarm" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Presión Nocturna Alta",
+    "type": "single",
+    "id_influxvars": 12,
+    "condition": ">",
+    "value": 4.0,
+    "repeatInterval": 30,
+    "hasTimeRange": true,
+    "startime": "22:00",
+    "endtime": "06:00"
+  }'
+```
+
+### Range Alarm (Between)
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/createAlarm" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Temperatura Fuera de Rango",
+    "type": "single",
+    "id_influxvars": 22,
+    "condition": "entre",
+    "value": 15,
+    "value2": 25,
+    "repeatInterval": 15
+  }'
+```
+
+<Note>
+For "entre" (between) condition, the alarm triggers when the value is **outside** the specified range.
+</Note>
+
+### Combined Alarm
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/createAlarm" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Sistema Sobrecarga",
+    "type": "combined",
+    "id_influxvars": 18,
+    "condition": ">",
+    "value": 80,
+    "logicOperator": "AND",
+    "secondaryVariableId": 19,
+    "secondaryCondition": ">",
+    "secondaryValue": 5.0,
+    "repeatInterval": 5
+  }'
+```
+
+<ParamField body="name" type="string" required>
+  Alarm name
+</ParamField>
+
+<ParamField body="type" type="string" required>
+  `single` or `combined`
+</ParamField>
+
+<ParamField body="id_influxvars" type="integer" required>
+  Primary variable ID
+</ParamField>
+
+<ParamField body="condition" type="string" required>
+  Operator: `>`, `<`, `=`, `>=`, `<=`, or `entre`
+</ParamField>
+
+<ParamField body="value" type="number" required>
+  Threshold value
+</ParamField>
+
+<ParamField body="value2" type="number">
+  Upper bound (required for "entre" condition)
+</ParamField>
+
+<ParamField body="repeatInterval" type="integer" required>
+  Minutes between notifications
+</ParamField>
+
+<ParamField body="hasTimeRange" type="boolean">
+  Enable time-based restriction (default: false)
+</ParamField>
+
+<ParamField body="startime" type="string">
+  Start time in HH:MM format (required if hasTimeRange is true)
+</ParamField>
+
+<ParamField body="endtime" type="string">
+  End time in HH:MM format (required if hasTimeRange is true)
+</ParamField>
+
+<ParamField body="logicOperator" type="string">
+  `AND` or `OR` (required for combined alarms)
+</ParamField>
+
+<ParamField body="secondaryVariableId" type="integer">
+  Secondary variable ID (required for combined alarms)
+</ParamField>
+
+<ParamField body="secondaryCondition" type="string">
+  Secondary operator (required for combined alarms)
+</ParamField>
+
+<ParamField body="secondaryValue" type="number">
+  Secondary threshold (required for combined alarms)
+</ParamField>
+
+## Update Alarm
+
+Update an existing alarm:
+
+```bash cURL
+curl -X PUT "https://masagua.cooptech.com.ar/api/updateAlarm/{id}" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "pH Bajo Actualizado",
+    "type": "single",
+    "id_influxvars": 7,
+    "condition": "<",
+    "value": 6.0,
+    "repeatInterval": 15
+  }'
+```
+
+## Change Alarm Status
+
+Activate or deactivate an alarm:
+
+```bash cURL
+curl -X PUT "https://masagua.cooptech.com.ar/api/changeStatusAlarm" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 1,
+    "status": true
+  }'
+```
+
+<ParamField body="id" type="integer" required>
+  Alarm ID
+</ParamField>
+
+<ParamField body="status" type="boolean" required>
+  Current status (will be toggled)
+</ParamField>
+
+<Note>
+The API toggles the status, so if `status` is `true`, the alarm will be deactivated.
+</Note>
+
+## Alarm Conditions
+
+### Available Operators
+
+<Tabs>
+  <Tab title="Greater Than">
+    ```json
+    {
+      "condition": ">",
+      "value": 5.0
+    }
+    ```
+    Triggers when variable > 5.0
+  </Tab>
+  
+  <Tab title="Less Than">
+    ```json
+    {
+      "condition": "<",
+      "value": 2.0
+    }
+    ```
+    Triggers when variable < 2.0
+  </Tab>
+  
+  <Tab title="Equal">
+    ```json
+    {
+      "condition": "=",
+      "value": 1
+    }
+    ```
+    Triggers when variable = 1
+  </Tab>
+  
+  <Tab title="Between">
+    ```json
+    {
+      "condition": "entre",
+      "value": 6.5,
+      "value2": 8.5
+    }
+    ```
+    Triggers when variable < 6.5 OR variable > 8.5
+  </Tab>
+</Tabs>
+
+## Time-Based Restrictions
+
+Alarms can be restricted to specific time windows:
+
+```json
+{
+  "hasTimeRange": true,
+  "startime": "08:00",
+  "endtime": "18:00"
+}
+```
+
+This alarm will only trigger between 8:00 AM and 6:00 PM.
+
+## Repeat Intervals
+
+The `repeatInterval` (in minutes) controls notification frequency:
+
+- **5 minutes**: Critical alarms requiring immediate attention
+- **15 minutes**: Important operational alerts
+- **30 minutes**: Standard monitoring alerts
+- **60+ minutes**: Low-priority notifications
+
+## Combined Alarm Logic
+
+### AND Logic
+
+Both conditions must be true:
+
+```json
+{
+  "type": "combined",
+  "condition": ">",
+  "value": 100,
+  "logicOperator": "AND",
+  "secondaryCondition": "<",
+  "secondaryValue": 2.0
+}
+```
+
+Triggers when: (Primary > 100) **AND** (Secondary < 2.0)
+
+### OR Logic
+
+Either condition can be true:
+
+```json
+{
+  "type": "combined",
+  "condition": ">",
+  "value": 90,
+  "logicOperator": "OR",
+  "secondaryCondition": ">",
+  "secondaryValue": 30
+}
+```
+
+Triggers when: (Primary > 90) **OR** (Secondary > 30)
+
+## Example Use Cases
+
+### High Pressure Alert
+
+```json
+{
+  "name": "Presión Crítica Red Principal",
+  "type": "single",
+  "id_influxvars": 45,
+  "condition": ">=",
+  "value": 6.0,
+  "repeatInterval": 5
+}
+```
+
+### Water Quality Range
+
+```json
+{
+  "name": "Cloro Residual Fuera de Norma",
+  "type": "single",
+  "id_influxvars": 8,
+  "condition": "entre",
+  "value": 0.2,
+  "value2": 2.0,
+  "repeatInterval": 20
+}
+```
+
+### Pump Failure Detection
+
+```json
+{
+  "name": "Falla Bomba Principal",
+  "type": "combined",
+  "id_influxvars": 52,
+  "condition": "=",
+  "value": 0,
+  "logicOperator": "AND",
+  "secondaryVariableId": 53,
+  "secondaryCondition": "<",
+  "secondaryValue": 10,
+  "repeatInterval": 10
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Variables" icon="code" href="/api/variables">
+    Configure variables for alarms
+  </Card>
+  
+  <Card title="Charts" icon="chart-line" href="/api/charts">
+    Visualize alarm conditions
+  </Card>
+</CardGroup>

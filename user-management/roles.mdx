@@ -1,0 +1,405 @@
+---
+title: 'User Roles & Permissions'
+description: 'Understanding role-based access control in Centinela'
+icon: 'user-shield'
+---
+
+## Overview
+
+Centinela implements a role-based access control (RBAC) system with five distinct user profiles. Each profile has specific permissions that control access to features and data within the system.
+
+## User Profiles
+
+The system defines the following user profiles:
+
+```javascript
+// configSecurity/utils/DataTable/ColumnsUsers.jsx:6-11
+const profile = {
+  1: 'Super Admin',
+  2: 'Moderador',
+  3: 'Lector',
+  4: 'Operador',
+}
+```
+
+<Info>
+  Profile 5 (External User) is handled separately with restricted access. See [External Users](/user-management/external-users) for details.
+</Info>
+
+### Profile Definitions
+
+<AccordionGroup>
+  <Accordion title="Super Admin (Profile 1)" icon="crown">
+    **Full System Access**
+    
+    Super Admins have unrestricted access to all system features and configurations:
+    
+    - Complete user management
+    - System configuration
+    - Security settings
+    - All monitoring and control features
+    - Data export and reporting
+    - Menu customization
+    - Variable configuration
+    
+    <Warning>
+      Super Admin users are filtered from the user management table to prevent accidental modification.
+      
+      ```javascript
+      // configSecurity/views/index.jsx:42
+      data={listUsers.filter((usr) => usr.id_profile !== 1)}
+      ```
+    </Warning>
+  </Accordion>
+  
+  <Accordion title="Moderador (Profile 2)" icon="user-gear">
+    **System Management**
+    
+    Moderators can:
+    
+    - View and manage users (except Super Admins)
+    - Configure charts and dashboards
+    - Manage alarms and notifications
+    - Access all monitoring features
+    - Configure diagrams and visualizations
+    
+    Moderators cannot:
+    
+    - Modify Super Admin users
+    - Change critical system configurations
+    - Access certain administrative functions
+  </Accordion>
+  
+  <Accordion title="Lector (Profile 3)" icon="eye">
+    **Read-Only Access**
+    
+    Readers have view-only permissions:
+    
+    - View dashboards and charts
+    - Monitor real-time data
+    - Access diagrams
+    - View notifications
+    
+    Readers cannot:
+    
+    - Modify any configurations
+    - Create or edit users
+    - Change system settings
+    - Control equipment
+  </Accordion>
+  
+  <Accordion title="Operador (Profile 4)" icon="sliders">
+    **Operational Control**
+    
+    Operators can:
+    
+    - Control pumps and equipment
+    - Manage operational parameters
+    - View real-time monitoring
+    - Acknowledge alarms
+    - Create operational reports
+    
+    Operators cannot:
+    
+    - Modify user accounts
+    - Change system configurations
+    - Access security settings
+  </Accordion>
+</AccordionGroup>
+
+## Route Access Control
+
+Access to routes is controlled based on user profile:
+
+```javascript
+// App.jsx:126-128
+{(isExternalUser ? externalRoutes : userRoutes).map((route) => (
+  <Route key={route.path} path={route.path} element={route.element} />
+))}
+```
+
+### Internal User Routes
+
+Profiles 1-4 have access to these routes:
+
+<ParamField path="/home" type="all profiles">
+  Main dashboard with system overview
+</ParamField>
+
+<ParamField path="/config/security" type="admin/moderador">
+  User management interface
+  
+  ```javascript
+  // App.jsx:60
+  { path: '/config/security', element: <ConfigSecurity /> }
+  ```
+</ParamField>
+
+<ParamField path="/chart" type="all profiles">
+  Charts and analytics dashboard
+</ParamField>
+
+<ParamField path="/config/menu" type="admin/moderador">
+  Menu configuration
+</ParamField>
+
+<ParamField path="/config/diagram" type="admin/moderador/operador">
+  Diagram management
+</ParamField>
+
+<ParamField path="/config/pumps" type="admin/moderador/operador">
+  Pump control configuration
+</ParamField>
+
+<ParamField path="/config/vars" type="admin/moderador">
+  Variable configuration
+</ParamField>
+
+<ParamField path="/config/alarm" type="admin/moderador">
+  Alarm configuration
+</ParamField>
+
+### External User Routes
+
+Profile 5 has restricted access:
+
+```javascript
+// App.jsx:89-91
+const externalRoutes = [
+  { path: '/', element: <ExternalUser /> }
+]
+```
+
+<Note>
+  External users attempting to access internal routes are automatically redirected to their dashboard:
+  
+  ```javascript
+  // App.jsx:130
+  {isExternalUser && <Route path="*" element={<Navigate to="/" />} />}
+  ```
+</Note>
+
+## User Management Interface
+
+The security configuration page displays all users (except Super Admins):
+
+```javascript
+// configSecurity/views/index.jsx:39-40
+<h1 className='text-2xl mb-3'>Usuarios Mas Agua</h1>
+<TableCustom
+  data={listUsers.filter((usr) => usr.id_profile !== 1)}
+  columns={ColumnsUser(editUserRecloser)}
+  ...
+/>
+```
+
+### User Table Columns
+
+The user management table displays:
+
+<ParamField path="first_name" type="string">
+  User's first and last name combined
+  
+  ```javascript
+  // ColumnsUsers.jsx:17-19
+  Cell: ({ row }) => {
+    return <p>{`${row.original?.first_name} ${row.original?.last_name}`}</p>
+  }
+  ```
+</ParamField>
+
+<ParamField path="email" type="string">
+  User's email address (used for login)
+</ParamField>
+
+<ParamField path="id_profile" type="number">
+  User's role displayed as profile name
+  
+  ```javascript
+  // ColumnsUsers.jsx:29-31
+  Cell: ({ row }) => {
+    return <p>{`${profile[row.original?.id_profile]}`}</p>
+  }
+  ```
+</ParamField>
+
+<ParamField path="password" type="string">
+  User's password (masked by default with show/hide toggle)
+  
+  ```javascript
+  // ColumnsUsers.jsx:36-47
+  Cell: ({ row }) => {
+    const [showPassword, setShowPassword] = useState(false)
+    return (
+      <div className='flex items-center'>
+        <p>{showPassword ? row.original?.password : '••••••••'}</p>
+        <IconButton onClick={() => setShowPassword(!showPassword)}>
+          {showPassword ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      </div>
+    )
+  }
+  ```
+</ParamField>
+
+<ParamField path="status" type="number">
+  User status (1 = Enabled, 0 = Disabled)
+  
+  ```javascript
+  // ColumnsUsers.jsx:52-60
+  Cell: ({ row }) => {
+    return (
+      <div className='flex items-center w-full'>
+        <Circle color={row.original?.status > 0 ? 'success' : 'error'} />
+        <p>{`${row.original?.status > 0 ? 'Habilitado' : 'Deshabilitado'}`}</p>
+      </div>
+    )
+  }
+  ```
+</ParamField>
+
+## Editing Users
+
+Authorized users can edit user information through the security interface:
+
+```javascript
+// configSecurity/views/index.jsx:13-31
+const editUserRecloser = (data) => {
+  const existingTabIndex = tabs.findIndex((tab) => tab.name === `Edicion de: ${data.last_name}`)
+  
+  if (existingTabIndex !== -1) {
+    setTabCurrent(existingTabIndex)
+  } else {
+    setTabs((prevTabs) => [
+      ...prevTabs,
+      {
+        name: `Edicion de: ${data.last_name}`,
+        id: data.id,
+        link: '/editUserRecloser',
+        component: <EditUserRecloser data={data} />,
+      },
+    ])
+    setTabCurrent(tabs.length)
+  }
+  navigate('/tabs')
+}
+```
+
+### Edit User Form
+
+The user edit interface allows modification of:
+
+- User password
+- (Name is displayed but read-only)
+
+```javascript
+// EditUserRecloser.jsx:52-72
+<TextField
+  type='text'
+  label={``}
+  disabled
+  value={`${data.last_name} ${data.first_name}`}
+/>
+
+<TextField
+  error={errors.password ? true : false}
+  type='text'
+  label={`Contraseña`}
+  {...register('password', { required: 'El Campo es requerido' })}
+  value={data.password}
+  defaultValue={data.password}
+/>
+```
+
+<Warning>
+  Password changes in the edit interface update the user's credentials. Ensure users are notified of any password changes.
+</Warning>
+
+## User Status Management
+
+Users can be enabled or disabled:
+
+- **Status 1**: User is active and can log in
+- **Status 0**: User is disabled and cannot access the system
+
+```javascript
+// dataUser.js example:
+{
+  id: 21,
+  first_name: 'Admin',
+  last_name: 'Devoto',
+  email: 'admin@devoto.coop',
+  id_profile: 2,
+  status: 1,  // Enabled
+  ...
+}
+```
+
+## Permission Matrix
+
+| Feature | Super Admin | Moderador | Lector | Operador | External |
+|---------|-------------|-----------|--------|----------|----------|
+| View Dashboards | ✅ | ✅ | ✅ | ✅ | ⚠️ Limited |
+| Edit Users | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Configure System | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Control Equipment | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Configure Alarms | ✅ | ✅ | ❌ | ❌ | ❌ |
+| View Reports | ✅ | ✅ | ✅ | ✅ | ⚠️ Limited |
+| Export Data | ✅ | ✅ | ❌ | ✅ | ❌ |
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Least Privilege" icon="lock">
+    Assign users the minimum profile level needed for their role
+  </Card>
+  
+  <Card title="Regular Audits" icon="list-check">
+    Periodically review user permissions and disable inactive accounts
+  </Card>
+  
+  <Card title="Strong Passwords" icon="key">
+    Enforce password complexity requirements for all users
+  </Card>
+  
+  <Card title="Monitor Access" icon="eye">
+    Track user logins and actions for security compliance
+  </Card>
+</CardGroup>
+
+<Note>
+  When creating new users, ensure they're assigned to the appropriate profile based on their job responsibilities and access requirements.
+</Note>
+
+## Example User Data
+
+Here's an example of user data structure:
+
+```javascript
+// configSecurity/utils/DataTable/dataUser.js:80-92
+{
+  id: 22,
+  first_name: 'Victor',
+  last_name: 'Roteda',
+  email: 'coopvictorroteda@gmail.com',
+  password: 'Roteda5678',
+  id_profile: 2,  // Moderador
+  status: 1,      // Enabled
+  date_create: '2023-11-24 12:32:24',
+  user_create: 0,
+  date_edit: '2024-04-15 12:08:42',
+  user_edit: 0,
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="shield" href="/user-management/authentication">
+    Learn about the authentication flow
+  </Card>
+  
+  <Card title="External Users" icon="user-lock" href="/user-management/external-users">
+    Configure external user access
+  </Card>
+</CardGroup>

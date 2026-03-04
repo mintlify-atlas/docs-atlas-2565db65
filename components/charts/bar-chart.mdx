@@ -1,0 +1,236 @@
+---
+title: 'Bar Chart'
+description: 'Dataset-based bar chart component for comparing multiple data series across categories'
+icon: 'chart-column'
+---
+
+## Overview
+
+The Bar Chart component displays categorical data using vertical bars, ideal for comparing values across different products, time periods, or measurement categories. Uses Apache ECharts dataset mode for efficient data binding.
+
+## Props
+
+<ParamField path="data" type="array[]" required>
+  Two-dimensional array where the first row contains column headers and subsequent rows contain data values.
+  
+  **Dataset Structure:**
+  - **First row**: Header labels (category name + series names)
+  - **Remaining rows**: Data rows (category value + numeric values for each series)
+  
+  ```javascript
+  data={[
+    ['product', '2015', '2016', '2017'],           // Headers
+    ['Matcha Latte', 43.3, 85.8, 93.7],            // Category 1
+    ['Milk Tea', 83.1, 73.4, 55.1],                // Category 2
+    ['Cheese Cocoa', 86.4, 65.2, 82.5],            // Category 3
+    ['Walnut Brownie', 72.4, 53.9, 39.1]           // Category 4
+  ]}
+  ```
+</ParamField>
+
+## Dataset Mode
+
+The component uses ECharts **dataset mode**, which offers several advantages:
+
+<ResponseField name="Automatic Series Binding">
+  Each column after the first is automatically bound to a bar series. No need to manually configure series data.
+</ResponseField>
+
+<ResponseField name="Data Separation">
+  Chart configuration is separated from data, making it easier to update values without changing options.
+</ResponseField>
+
+<ResponseField name="Column-Based Format">
+  Data is organized by columns, matching common data sources like CSV files or database queries.
+</ResponseField>
+
+## Chart Configuration
+
+The Bar Chart includes these built-in features:
+
+### Legend
+
+Automatic legend generation based on dataset column headers (excluding the first column). Legend items are horizontally aligned.
+
+### Tooltip
+
+Hover over any bar to see detailed information about that data point, including category name and value.
+
+### Axes
+
+<ParamField path="xAxis">
+  **Type**: `'category'`
+  
+  Automatically populated from the first column of the dataset. Categories are evenly distributed along the x-axis.
+</ParamField>
+
+<ParamField path="yAxis">
+  **Type**: `'value'` (default)
+  
+  Automatically scales based on the range of values in the dataset.
+</ParamField>
+
+### Series
+
+The number of bar series is determined by the number of columns in the dataset (minus the category column). Each series represents one year/period/measurement type.
+
+<Note>
+  The component creates one bar series per data column. In the example above, three columns ('2015', '2016', '2017') generate three bar series.
+</Note>
+
+## Usage Examples
+
+### Basic Bar Chart
+
+```jsx
+import BarDataSet from './components/BarDataSet'
+
+function SalesComparisonChart() {
+  const salesData = [
+    ['product', '2015', '2016', '2017'],
+    ['Matcha Latte', 43.3, 85.8, 93.7],
+    ['Milk Tea', 83.1, 73.4, 55.1],
+    ['Cheese Cocoa', 86.4, 65.2, 82.5],
+    ['Walnut Brownie', 72.4, 53.9, 39.1]
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '400px' }}>
+      <BarDataSet data={salesData} />
+    </div>
+  )
+}
+```
+
+### Water Treatment Plant Comparison
+
+```jsx
+import BarDataSet from './components/BarDataSet'
+
+function PlantProductionChart() {
+  const productionData = [
+    ['Planta', 'Ene', 'Feb', 'Mar', 'Abr'],
+    ['Planta Norte', 1200, 1350, 1280, 1400],
+    ['Planta Sur', 980, 1020, 1150, 1100],
+    ['Planta Este', 1450, 1500, 1420, 1550]
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '450px' }}>
+      <BarDataSet data={productionData} />
+    </div>
+  )
+}
+```
+
+### Water Quality Parameters by Zone
+
+```jsx
+import BarDataSet from './components/BarDataSet'
+
+function WaterQualityByZone() {
+  // Comparing pH levels across different zones and months
+  const qualityData = [
+    ['Zona', 'Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+    ['Zona A', 7.2, 7.4, 7.3, 7.5],
+    ['Zona B', 7.1, 7.2, 7.3, 7.2],
+    ['Zona C', 7.3, 7.5, 7.4, 7.6],
+    ['Zona D', 7.0, 7.1, 7.2, 7.3]
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '400px' }}>
+      <BarDataSet data={qualityData} />
+    </div>
+  )
+}
+```
+
+### Monthly Chemical Consumption
+
+```jsx
+import BarDataSet from './components/BarDataSet'
+
+function ChemicalConsumptionChart() {
+  const consumptionData = [
+    ['Químico', 'Q1', 'Q2', 'Q3', 'Q4'],
+    ['Cloro (kg)', 450, 520, 480, 510],
+    ['Sulfato de Aluminio (kg)', 1200, 1350, 1280, 1400],
+    ['Cal (kg)', 800, 850, 820, 880],
+    ['Polímero (L)', 150, 170, 160, 180]
+  ]
+
+  return (
+    <div style={{ width: '100%', height: '500px' }}>
+      <BarDataSet data={consumptionData} />
+    </div>
+  )
+}
+```
+
+## Data Format Requirements
+
+<Note>
+  **Important**: The dataset array must have at least 2 columns (1 category + 1 value series) and at least 2 rows (1 header + 1 data row).
+</Note>
+
+### Valid Dataset Examples
+
+```javascript
+// Minimum valid dataset (2 columns, 2 rows)
+const minData = [
+  ['Month', 'Revenue'],
+  ['Jan', 1000]
+]
+
+// Multiple series (4 columns)
+const multiSeriesData = [
+  ['Product', 'Q1', 'Q2', 'Q3'],
+  ['Product A', 100, 120, 110],
+  ['Product B', 90, 95, 105]
+]
+
+// Many categories
+const manyCategoriesData = [
+  ['Day', 'Value'],
+  ['Mon', 10],
+  ['Tue', 15],
+  ['Wed', 12],
+  ['Thu', 18],
+  ['Fri', 20]
+]
+```
+
+## Customization Options
+
+While the component provides sensible defaults, you can extend it by modifying the source:
+
+- **Colors**: Modify series colors via `itemStyle.color`
+- **Bar Width**: Adjust via `series.barWidth`
+- **Stacking**: Enable via `series.stack`
+- **Horizontal Bars**: Change `xAxis.type` to `'value'` and `yAxis.type` to `'category'`
+- **Toolbox**: Enable `saveAsImage`, `dataView`, `magicType` features
+
+## Performance Considerations
+
+- Dataset mode is optimized for updates - changing data doesn't require reconfiguring series
+- Recommended maximum: 50 categories × 10 series for optimal rendering
+- For large datasets, consider data aggregation or pagination
+
+## Accessibility
+
+- Include descriptive category and series names in the dataset headers
+- Use high-contrast color schemes for better visibility
+- Consider adding `aria-label` attributes to the chart container
+
+## Related Components
+
+- [Line Chart](/components/charts/line-chart) - For time-series trend visualization
+- [Pie Chart](/components/charts/pie-chart) - For part-to-whole relationships
+- [Gauge](/components/charts/gauge) - For single metric display
+
+## Source Reference
+
+**File**: `~/workspace/source/src/modules/Charts/components/BarDataSet.jsx:4`
+
+Built with Apache ECharts dataset mode for the Centinela water treatment monitoring system.

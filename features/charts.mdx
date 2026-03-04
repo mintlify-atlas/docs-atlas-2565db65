@@ -1,0 +1,294 @@
+---
+title: 'Charts & Visualization'
+description: 'Create and configure custom data visualizations for your monitoring needs'
+icon: 'chart-line'
+---
+
+Centinela provides a powerful charting system built on Apache ECharts, enabling you to create sophisticated visualizations of your water treatment data.
+
+## Chart Types
+
+Centinela supports multiple chart types, each optimized for different data visualization needs:
+
+### Liquid Fill Percentage
+
+Animated liquid-filled containers that visually represent levels, volumes, or percentages.
+
+<CardGroup cols={2}>
+  <Card title="Shape Options" icon="shapes">
+    Circle, rectangle, rounded rectangle, triangle, diamond, arrow, and pin shapes available.
+  </Card>
+  <Card title="Display Modes" icon="toggle-on">
+    Show as percentage or absolute value with custom units.
+  </Card>
+</CardGroup>
+
+**Key Features:**
+- Gradient color fills (light blue to deep blue)
+- Animated wave motion (4-second period)
+- Configurable border and outline
+- Support for primary and secondary values
+- Automatic "Sin datos" state when offline
+
+<Accordion title="Configuration Example">
+  ```javascript
+  {
+    value: 75.5,              // Current value
+    maxValue: 100,            // Maximum scale
+    color: '#38bdf8',         // Primary color
+    shape: 'circle',          // Container shape
+    porcentage: false,        // Show as value (not %)
+    border: true,             // Show outline
+    unidad: 'm³'              // Unit label
+  }
+  ```
+</Accordion>
+
+### Gauge Speed Charts
+
+Traditional speedometer-style gauges with needle indicators for flow rates, pressure, and speed measurements.
+
+**Visual Elements:**
+- 240-degree arc (210° to -30°)
+- Gradient progress bar (22px width)
+- Central anchor point with color-coded border
+- Customizable labels and descriptions
+- Split lines for scale references
+
+<Accordion title="Usage Example">
+  ```javascript
+  {
+    value: 32.4,
+    maxValue: 50,
+    color: '#5c5ac7',
+    unidad: 'L/s',
+    description: 'Flow Rate',
+    description2: 'Main Line'
+  }
+  ```
+</Accordion>
+
+### Circle Percentage Gauges
+
+Clean, minimal circular progress indicators ideal for capacity monitoring.
+
+**Features:**
+- 360-degree circular progress (90° start)
+- Rounded cap style
+- 24px ring width
+- Gradient color progression
+- Center-aligned percentage display
+
+### Boolean LED Indicators
+
+Visual status indicators that display on/off states with glowing LED effects.
+
+<Steps>
+  <Step title="Off State">
+    Gray radial gradient with subtle shadow, displays custom "off" text.
+  </Step>
+  <Step title="On State">
+    Bright gradient with customizable color, enhanced shadow glow effect, displays custom "on" text.
+  </Step>
+  <Step title="No Data State">
+    Muted gray appearance with "Sin datos" label.
+  </Step>
+</Steps>
+
+**Customization:**
+```javascript
+{
+  value: true,              // Boolean state
+  textOn: 'Running',        // Label when active
+  textOff: 'Stopped',       // Label when inactive
+  colorOn: '#00ff00',       // Active color (green)
+  colorOff: '#444444'       // Inactive color (dark gray)
+}
+```
+
+### Multiple Boolean Chart
+
+Display multiple LED indicators in a grid layout, perfect for equipment status panels.
+
+<Accordion title="Multi-LED Configuration">
+  ```javascript
+  {
+    title: 'Equipment Status',
+    columns: 2,
+    items: [
+      {
+        key: 'pump1',
+        title: 'Pump 1',
+        textOn: 'Active',
+        textOff: 'Inactive',
+        colorOn: '#00ff00',
+        colorOff: '#444',
+        influxVar: { id: 8, name: 'pump1_status' }
+      },
+      {
+        key: 'pump2',
+        title: 'Pump 2',
+        textOn: 'Active',
+        textOff: 'Inactive',
+        colorOn: '#00ff00',
+        colorOff: '#444',
+        influxVar: { id: 9, name: 'pump2_status' }
+      }
+    ]
+  }
+  ```
+</Accordion>
+
+### Line Charts
+
+Time-series visualizations for historical data analysis with advanced features.
+
+<CardGroup cols={2}>
+  <Card title="Interactive Zoom" icon="magnifying-glass">
+    Zoom into specific time ranges with mouse wheel or slider controls.
+  </Card>
+  <Card title="Data Export" icon="download">
+    Export charts as images or view data in table format.
+  </Card>
+  <Card title="Multi-Series" icon="layer-group">
+    Plot multiple variables on the same timeline for comparison.
+  </Card>
+  <Card title="Mobile Optimized" icon="mobile">
+    Responsive layout with adjusted controls for mobile devices.
+  </Card>
+</CardGroup>
+
+**Advanced Features:**
+- Time zone support (America/Argentina/Buenos_Aires)
+- Automatic null value handling with `connectNulls`
+- Data zoom with minimum 2-minute span
+- Interactive legend with scroll support
+- Tooltip with formatted timestamps
+- Restore to default view
+- Save as image
+
+<Note>
+  Line charts automatically adjust sampling periods based on the selected time range to optimize performance and readability.
+</Note>
+
+### Pie/Doughnut Charts
+
+Categorical data distribution with interactive tooltips.
+
+```javascript
+{
+  data: [
+    { name: 'Category A', value: 335 },
+    { name: 'Category B', value: 234 },
+    { name: 'Category C', value: 158 }
+  ]
+}
+```
+
+### Bar Charts
+
+Comparative data visualization with dataset support.
+
+## Chart Configuration
+
+All charts are configured through the administrative interface and stored in the database with the following structure:
+
+### Configuration Components
+
+<Tabs>
+  <Tab title="Chart Metadata">
+    - **Type**: Chart component identifier
+    - **Name**: Display title
+    - **Category**: Dashboard or Board chart
+  </Tab>
+  
+  <Tab title="Props (ChartConfig)">
+    - Visual properties (colors, shapes, borders)
+    - Display options (units, labels)
+    - Boolean flags (percentage mode, etc.)
+  </Tab>
+  
+  <Tab title="Data (ChartData)">
+    - InfluxDB variable mappings
+    - Static values (max values, labels)
+    - Secondary measurements
+  </Tab>
+</Tabs>
+
+### Variable Binding
+
+Charts connect to InfluxDB through variable configurations:
+
+```javascript
+{
+  id: 15,                    // Unique identifier
+  name: 'tank_level',        // Variable name
+  unit: 'm³',                // Measurement unit
+  type: 'last',              // Query type
+  calc: false,               // Calculated variable flag
+  varsInflux: 'tank_a',      // InfluxDB field name
+  equation: null,            // Calculation formula
+  status: true               // Active status
+}
+```
+
+## Real-Time Updates
+
+Charts update automatically through two mechanisms:
+
+<Steps>
+  <Step title="Dashboard Widgets">
+    Update every 30 seconds via batched API calls for all visible widgets.
+  </Step>
+  
+  <Step title="Historical Charts">
+    Refresh every 15 seconds when expanded in accordion view, paused when collapsed.
+  </Step>
+</Steps>
+
+## Data Handling
+
+### Validation
+
+All numeric inputs are validated:
+
+```javascript
+const isValidNumber = (v) =>
+  v !== null &&
+  v !== undefined &&
+  v !== '' &&
+  !isNaN(Number(v));
+```
+
+### Fallback States
+
+<Warning>
+  When sensor data is unavailable, charts automatically enter safe display states with "Sin datos" messaging and muted colors.
+</Warning>
+
+## Performance Considerations
+
+**Optimization techniques:**
+- Component memoization prevents unnecessary re-renders
+- Batch API requests reduce network overhead
+- Conditional animation (disabled when no data)
+- Efficient ECharts rendering engine
+- Responsive sizing with CSS transforms
+
+## Creating Custom Charts
+
+<Card title="Chart Configuration Guide" icon="gear" href="/configuration/charts">
+  Learn how to configure charts, bind variables, and customize visualizations in the Charts Configuration section.
+</Card>
+
+## Export and Analysis
+
+Line charts support data export in multiple formats:
+
+- **Image Export**: Save chart as PNG for reports
+- **Table View**: View raw data in tabular format
+- **Zoom Analysis**: Focus on specific time ranges for detailed inspection
+
+<Note>
+  Exported images include the "+Agua" watermark and timestamp information for documentation purposes.
+</Note>

@@ -1,0 +1,258 @@
+---
+title: 'Authentication'
+description: 'Authenticate and authorize API requests in the Centinela system'
+---
+
+## Overview
+
+The Centinela API uses **Bearer token authentication** for all protected endpoints. Authentication is handled through the Cooptech authentication system, which provides cross-product single sign-on.
+
+## Authentication Flow
+
+The authentication process involves two steps:
+
+1. Authenticate with Cooptech to get user information
+2. Exchange Cooptech credentials for a Centinela-specific token
+
+### Step 1: Get User Information
+
+First, retrieve user information from the Cooptech API:
+
+```bash cURL
+curl -X GET "https://cooptech.com.ar/api/getUser?id={userId}" \
+  -H "Authorization: Bearer {cooптechToken}"
+```
+
+<ResponseField name="email" type="string">
+  User email address
+</ResponseField>
+
+<ResponseField name="token_apps" type="string">
+  Token for cross-application authentication
+</ResponseField>
+
+### Step 2: Login to Centinela
+
+Exchange Cooptech credentials for a Centinela token:
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/loginCooptech" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "tokenApp": "cooptech_token_apps_value",
+    "schemaName": "client_schema_name",
+    "influx_name": "influx_database_name"
+  }'
+```
+
+<ParamField body="email" type="string" required>
+  User email from Cooptech authentication
+</ParamField>
+
+<ParamField body="tokenApp" type="string" required>
+  Token apps value from Cooptech user object
+</ParamField>
+
+<ParamField body="schemaName" type="string" required>
+  Database schema name for the client
+</ParamField>
+
+<ParamField body="influx_name" type="string" required>
+  InfluxDB database name for time-series data
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 123,
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe"
+  }
+}
+```
+
+## Using Authentication Tokens
+
+Include the authentication token in the `Authorization` header for all API requests:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/getVarsInflux" \
+  -H "Authorization: Bearer {your_token_here}" \
+  -H "Content-Type: application/json"
+```
+
+### JavaScript Example
+
+```javascript
+const token = localStorage.getItem('token');
+
+const response = await fetch(`${baseUrl}/getVarsInflux`, {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  credentials: 'include'
+});
+
+const data = await response.json();
+```
+
+### Axios Example (Used in Centinela)
+
+```javascript
+import axios from 'axios';
+
+const request = async (url, method, data = false) => {
+  const token = localStorage.getItem('token');
+  
+  const response = await axios({
+    method,
+    url,
+    data: data || {},
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  return response;
+};
+```
+
+## Get Schema Information
+
+Retrieve database schema information for a client and product:
+
+```bash cURL
+curl -X GET "https://cooptech.com.ar/api/getSchemaProduct?clientId={clientId}&productId={productId}" \
+  -H "Authorization: Bearer {cooптechToken}"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "schema_name": "client_db_schema",
+    "influx_name": "client_influxdb",
+    "product_id": 5,
+    "client_id": 12
+  }
+]
+```
+
+## List User Products
+
+Get products available to a user for a specific client:
+
+```bash cURL
+curl -X GET "https://cooptech.com.ar/api/listProductxUserxClient?id_user={userId}&id_client={clientId}" \
+  -H "Authorization: Bearer {cooптechToken}"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "id_product": 5,
+    "name": "Centinela",
+    "description": "Water Treatment Monitoring"
+  },
+  {
+    "id_product": 3,
+    "name": "Mas Agua",
+    "description": "Water Distribution"
+  }
+]
+```
+
+## Public Endpoints
+
+Some endpoints are publicly accessible without authentication. Use the `requestPublic` function for these:
+
+```javascript
+const requestPublic = async (url, method, data = false) => {
+  const response = await axios({
+    method,
+    url,
+    data: data || {},
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  });
+  return response;
+};
+```
+
+<Note>
+Public endpoints should be used sparingly and only for non-sensitive operations like health checks or public dashboards.
+</Note>
+
+## Token Storage
+
+Tokens are stored in local storage:
+
+```javascript
+// Store token
+localStorage.setItem('token', tokenValue);
+
+// Retrieve token
+const token = localStorage.getItem('token');
+
+// Store user info
+localStorage.setItem('usuario', JSON.stringify(userObject));
+```
+
+## Error Handling
+
+### 401 Unauthorized
+
+If you receive a 401 error, your token is invalid or expired. Re-authenticate to get a new token.
+
+### 500 Internal Server Error
+
+The API returns detailed error messages in the response body:
+
+```json
+{
+  "field_name": {
+    "message": "Validation error description"
+  }
+}
+```
+
+## Security Best Practices
+
+<Warning>
+Never expose authentication tokens in client-side code, logs, or version control.
+</Warning>
+
+- Store tokens securely (localStorage or httpOnly cookies)
+- Always use HTTPS in production
+- Implement token refresh logic for long-lived sessions
+- Clear tokens on logout
+- Use environment variables for API endpoints
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Variables API" icon="code" href="/api/variables">
+    Manage monitoring variables
+  </Card>
+  
+  <Card title="Alarms API" icon="bell" href="/api/alarms">
+    Configure alarm conditions
+  </Card>
+</CardGroup>

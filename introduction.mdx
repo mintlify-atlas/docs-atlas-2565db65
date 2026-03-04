@@ -1,0 +1,199 @@
+---
+title: Introduction to Centinela
+description: A comprehensive water treatment plant monitoring and management platform designed to simplify operations for plant operators
+---
+
+# Welcome to Centinela
+
+Centinela is a powerful SaaS platform developed by Cooptech for monitoring and managing water treatment plants. Designed to simplify operations, Centinela provides plant operators with real-time visibility into their systems, enabling proactive management and data-driven decision-making.
+
+<Info>
+  Centinela combines real-time data monitoring, customizable dashboards, and intelligent alerting to give you complete control over your water treatment operations.
+</Info>
+
+## Who is Centinela For?
+
+Centinela is built for:
+
+- **Plant Operators** - Monitor critical parameters, control pumps, and respond to alerts in real-time
+- **Facility Managers** - Access historical data, generate reports, and optimize plant performance
+- **Water Treatment Cooperatives** - Manage multiple plants from a centralized platform
+- **External Stakeholders** - View consumption data and invoices through dedicated portals
+
+## Key Features
+
+### Real-Time Monitoring Dashboard
+
+Get instant visibility into your water treatment operations with live data from InfluxDB time-series monitoring:
+
+- **Live Sensor Data** - Monitor flow rates, pressure, chemical levels, and more
+- **Visual Indicators** - Liquid fill gauges, circular percentage indicators, and custom charts
+- **Auto-Refresh** - Data updates every 30 seconds automatically
+- **Customizable Views** - Configure dashboard layouts to match your operational needs
+
+### Interactive Process Diagrams
+
+Visualize your entire water treatment process with dynamic, interactive diagrams:
+
+```jsx
+// Real-time diagram updates from src/modules/DrawDiagram/views/ViewDiagram.jsx
+const updateInflux = async () => {
+  const influxPayload = elements
+    .filter(el => el.dataInflux)
+    .map(el => ({ id: el.dataInflux.id, dataInflux: el.dataInflux }));
+  
+  const response = await request(
+    `${backend['Centinela']}/multipleDataInflux`, 
+    'POST', 
+    influxPayload
+  );
+};
+```
+
+- Create custom diagrams with drag-and-drop elements
+- Connect sensors to diagram components for live updates
+- Animated flow lines show system operation status
+- Zoom and pan for detailed inspection
+
+### Intelligent Alarm System
+
+Stay informed about critical events with configurable alarms:
+
+- **Real-time Notifications** - Instant alerts when thresholds are exceeded
+- **Alarm History** - Complete audit trail of all system alerts
+- **Priority Management** - Mark critical alarms and track resolution
+- **Multi-Channel Delivery** - In-app notifications and email alerts
+
+### Advanced Charting & Analytics
+
+Analyze trends and optimize performance with powerful visualization tools:
+
+<CardGroup cols={2}>
+  <Card title="Line Charts" icon="chart-line">
+    Track trends over time with multi-variable line charts
+  </Card>
+  <Card title="Gauge Charts" icon="gauge">
+    Monitor real-time values with speedometer-style gauges
+  </Card>
+  <Card title="Boolean Indicators" icon="toggle-on">
+    Visual status indicators for pumps, valves, and equipment
+  </Card>
+  <Card title="Pie Charts" icon="chart-pie">
+    Analyze distribution and consumption patterns
+  </Card>
+</CardGroup>
+
+### Pump & Equipment Control
+
+Manage pumps and equipment directly from the platform:
+
+- Monitor pump status (running/stopped)
+- Track operational hours and cycles
+- Automated control based on sensor readings
+- Performance metrics and efficiency tracking
+
+### User Management & Security
+
+Robust security with role-based access control:
+
+- **Multiple User Profiles** - Admin, operators, and external users
+- **Granular Permissions** - Control access to features and data
+- **Secure Authentication** - JWT-based authentication with password recovery
+- **Multi-Client Support** - Manage multiple water treatment facilities
+
+## Technology Stack
+
+Centinela is built with modern, reliable technologies:
+
+<CodeGroup>
+```json Frontend Dependencies
+{
+  "react": "^18.2.0",
+  "@mui/material": "^5.15.10",
+  "highcharts": "^12.4.0",
+  "echarts": "^5.5.1",
+  "socket.io-client": "^4.8.1",
+  "axios": "^1.7.4",
+  "react-konva": "^18.2.10"
+}
+```
+
+```json Desktop App
+{
+  "productName": "Mas Agua",
+  "version": "1.0.4",
+  "identifier": "com.masagua.desktop",
+  "framework": "Tauri 2.x"
+}
+```
+</CodeGroup>
+
+- **Frontend**: React 18 with Material-UI components
+- **Charts**: Highcharts and ECharts for advanced visualizations
+- **Desktop**: Tauri framework for native desktop applications
+- **Real-time**: WebSocket connections for live data streaming
+- **State Management**: React Context API
+- **Data Visualization**: Konva for interactive diagrams
+
+## Platform Capabilities
+
+<Steps>
+  <Step title="Monitor in Real-Time">
+    Connect your sensors and PLCs to start monitoring critical parameters immediately
+  </Step>
+  <Step title="Visualize Your Process">
+    Create custom diagrams that reflect your actual plant layout and processes
+  </Step>
+  <Step title="Set Up Alerts">
+    Configure alarms for critical thresholds to prevent issues before they occur
+  </Step>
+  <Step title="Analyze & Optimize">
+    Use historical data and charts to identify trends and optimization opportunities
+  </Step>
+</Steps>
+
+## Access Options
+
+Centinela is available in two formats:
+
+<CardGroup cols={2}>
+  <Card title="Web Application" icon="globe">
+    Access from any modern browser - no installation required
+  </Card>
+  <Card title="Desktop Application" icon="desktop">
+    Native desktop app for Windows, macOS, and Linux with auto-updates
+  </Card>
+</CardGroup>
+
+<Note>
+  Both web and desktop versions share the same features and data - use whichever fits your workflow best.
+</Note>
+
+## Next Steps
+
+Ready to get started with Centinela?
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Get up and running in minutes
+  </Card>
+  <Card title="Installation Guide" icon="download" href="/installation">
+    Install the desktop application
+  </Card>
+</CardGroup>
+
+<Warning>
+  Centinela requires proper sensor configuration and backend connectivity. Contact your system administrator for connection details and credentials.
+</Warning>
+
+## Support
+
+Need help? Centinela is developed and supported by Cooptech:
+
+- **Email Support**: Contact your Cooptech representative
+- **Documentation**: Comprehensive guides for all features
+- **Training**: Available for new deployments
+
+---
+
+*Centinela - Simplifying water treatment plant management*

@@ -1,0 +1,379 @@
+---
+title: 'Desktop Installation'
+description: 'Step-by-step installation guide for the Centinela desktop application on Windows, macOS, and Linux'
+---
+
+## Overview
+
+The Centinela desktop application (Mas Agua) is distributed as native installers for Windows, macOS, and Linux. Choose the appropriate installer for your operating system and follow the platform-specific instructions below.
+
+<Info>
+  All installers are available from the [GitHub Releases](https://github.com/CspmIT/mas-agua-front/releases) page. Always download the latest version for the best experience and security updates.
+</Info>
+
+## Downloading the Installer
+
+<Steps>
+  <Step title="Navigate to Releases">
+    Go to the [Releases page](https://github.com/CspmIT/mas-agua-front/releases/latest) on GitHub.
+  </Step>
+  
+  <Step title="Select Your Platform">
+    Download the appropriate installer for your operating system:
+    
+    - **Windows**: `Mas-Agua_[version]_x64_en-US.msi`
+    - **macOS**: `Mas-Agua_[version]_universal.dmg`
+    - **Linux (Debian/Ubuntu)**: `mas-agua_[version]_amd64.deb`
+    - **Linux (Fedora/RHEL)**: `mas-agua-[version]-1.x86_64.rpm`
+    - **Linux (Universal)**: `mas-agua_[version]_amd64.AppImage`
+  </Step>
+  
+  <Step title="Verify the Download">
+    Check that the file downloaded completely and matches the expected file size shown on the releases page.
+  </Step>
+</Steps>
+
+<Note>
+  Current stable version: **1.0.4**
+</Note>
+
+---
+
+## Windows Installation
+
+The Windows version uses the **MSI (Microsoft Installer)** format for easy installation and removal.
+
+<Steps>
+  <Step title="Run the Installer">
+    Double-click the downloaded `.msi` file:
+    
+    ```
+    Mas-Agua_1.0.4_x64_en-US.msi
+    ```
+  </Step>
+  
+  <Step title="User Account Control">
+    If prompted by Windows User Account Control (UAC), click **Yes** to allow the installer to make changes to your device.
+  </Step>
+  
+  <Step title="Installation Wizard">
+    Follow the installation wizard:
+    
+    - Accept the license agreement
+    - Choose installation location (default: `C:\Program Files\Mas Agua`)
+    - Select whether to create a desktop shortcut
+    - Click **Install**
+  </Step>
+  
+  <Step title="Complete Installation">
+    Wait for the installation to complete, then click **Finish**. The application will launch automatically if you selected that option.
+  </Step>
+</Steps>
+
+### Windows Firewall
+
+If Windows Firewall prompts you to allow network access:
+
+<Warning>
+  Allow both **Private** and **Public** networks to ensure the application can communicate with your water treatment monitoring infrastructure.
+</Warning>
+
+### Command-Line Installation
+
+For automated deployment, you can install silently using:
+
+```powershell
+msiexec /i "Mas-Agua_1.0.4_x64_en-US.msi" /quiet /norestart
+```
+
+### Uninstallation
+
+To uninstall on Windows:
+
+1. Open **Settings** > **Apps** > **Installed apps**
+2. Find **Mas Agua** in the list
+3. Click the three dots menu and select **Uninstall**
+
+---
+
+## macOS Installation
+
+The macOS version is distributed as a **DMG (Disk Image)** containing the application bundle.
+
+<Steps>
+  <Step title="Open the DMG">
+    Double-click the downloaded `.dmg` file:
+    
+    ```
+    Mas-Agua_1.0.4_universal.dmg
+    ```
+  </Step>
+  
+  <Step title="Drag to Applications">
+    In the window that opens, drag the **Mas Agua** icon to the **Applications** folder.
+  </Step>
+  
+  <Step title="Eject the DMG">
+    After copying is complete, eject the disk image by right-clicking it in Finder and selecting **Eject**.
+  </Step>
+  
+  <Step title="First Launch">
+    Open **Applications** folder and double-click **Mas Agua** to launch the application.
+  </Step>
+</Steps>
+
+### Gatekeeper Security
+
+On first launch, macOS Gatekeeper may block the application:
+
+<Tabs>
+  <Tab title="macOS 13+ (Ventura)">
+    1. Click **Cancel** when the warning appears
+    2. Open **System Settings** > **Privacy & Security**
+    3. Scroll to the **Security** section
+    4. Click **Open Anyway** next to the Mas Agua warning
+    5. Click **Open** in the confirmation dialog
+  </Tab>
+  
+  <Tab title="macOS 12 and Earlier">
+    1. Click **Cancel** when the warning appears
+    2. Open **System Preferences** > **Security & Privacy**
+    3. Click the **General** tab
+    4. Click **Open Anyway** (you may need to unlock with your password)
+    5. Click **Open** in the confirmation dialog
+  </Tab>
+</Tabs>
+
+<Info>
+  The universal DMG includes binaries for both Intel and Apple Silicon Macs, ensuring optimal performance on all Mac hardware.
+</Info>
+
+### Uninstallation
+
+To uninstall on macOS:
+
+1. Open the **Applications** folder
+2. Drag **Mas Agua** to the **Trash**
+3. Empty the Trash
+
+---
+
+## Linux Installation
+
+Linux users have three installation options: DEB (Debian/Ubuntu), RPM (Fedora/RHEL), or AppImage (universal).
+
+### Debian/Ubuntu (.deb)
+
+<Steps>
+  <Step title="Install via GUI">
+    Double-click the `.deb` file and click **Install** in the software center.
+  </Step>
+  
+  <Step title="Or Install via Terminal">
+    ```bash
+    sudo dpkg -i mas-agua_1.0.4_amd64.deb
+    sudo apt-get install -f  # Install dependencies if needed
+    ```
+  </Step>
+  
+  <Step title="Launch the Application">
+    Launch from your applications menu or run:
+    
+    ```bash
+    mas-agua
+    ```
+  </Step>
+</Steps>
+
+### Fedora/RHEL (.rpm)
+
+<Steps>
+  <Step title="Install via DNF">
+    ```bash
+    sudo dnf install mas-agua-1.0.4-1.x86_64.rpm
+    ```
+  </Step>
+  
+  <Step title="Or Install via YUM">
+    For older systems:
+    
+    ```bash
+    sudo yum install mas-agua-1.0.4-1.x86_64.rpm
+    ```
+  </Step>
+  
+  <Step title="Launch the Application">
+    Launch from your applications menu or run:
+    
+    ```bash
+    mas-agua
+    ```
+  </Step>
+</Steps>
+
+### AppImage (Universal)
+
+AppImages are self-contained executables that work on most Linux distributions without installation.
+
+<Steps>
+  <Step title="Make Executable">
+    ```bash
+    chmod +x mas-agua_1.0.4_amd64.AppImage
+    ```
+  </Step>
+  
+  <Step title="Run the Application">
+    ```bash
+    ./mas-agua_1.0.4_amd64.AppImage
+    ```
+  </Step>
+  
+  <Step title="Optional: Integrate with System">
+    For desktop integration, install AppImageLauncher:
+    
+    ```bash
+    # Ubuntu/Debian
+    sudo apt install appimagelauncher
+    
+    # Fedora
+    sudo dnf install appimagelauncher
+    ```
+    
+    Then double-click the AppImage and choose **Integrate and run**.
+  </Step>
+</Steps>
+
+<Warning>
+  AppImages require FUSE to run. Most modern Linux distributions include it by default. If you encounter issues, install FUSE:
+  
+  ```bash
+  # Ubuntu/Debian
+  sudo apt install fuse libfuse2
+  
+  # Fedora
+  sudo dnf install fuse fuse-libs
+  ```
+</Warning>
+
+### Linux Dependencies
+
+The application requires WebKit2GTK. Install if missing:
+
+<CodeGroup>
+  ```bash Debian/Ubuntu
+  sudo apt install webkit2gtk-4.0 libappindicator3-1
+  ```
+  
+  ```bash Fedora
+  sudo dnf install webkit2gtk3 libappindicator-gtk3
+  ```
+  
+  ```bash Arch Linux
+  sudo pacman -S webkit2gtk
+  ```
+</CodeGroup>
+
+### Uninstallation
+
+<Tabs>
+  <Tab title="DEB (Debian/Ubuntu)">
+    ```bash
+    sudo apt remove mas-agua
+    ```
+  </Tab>
+  
+  <Tab title="RPM (Fedora/RHEL)">
+    ```bash
+    sudo dnf remove mas-agua
+    # or
+    sudo yum remove mas-agua
+    ```
+  </Tab>
+  
+  <Tab title="AppImage">
+    Simply delete the `.AppImage` file:
+    
+    ```bash
+    rm mas-agua_1.0.4_amd64.AppImage
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Post-Installation
+
+After installing the application on any platform:
+
+### First Launch Configuration
+
+<Steps>
+  <Step title="Launch Application">
+    Open Mas Agua from your applications menu or desktop shortcut.
+  </Step>
+  
+  <Step title="Configure Server Connection">
+    On first launch, you'll be prompted to configure the connection to your Centinela backend server. Enter your server URL and credentials.
+  </Step>
+  
+  <Step title="Verify Installation">
+    Check the application version by navigating to **Help** > **About**. It should display version **1.0.4**.
+  </Step>
+</Steps>
+
+### Auto-Update Configuration
+
+The application includes built-in auto-update functionality:
+
+<Info>
+  Updates are automatically checked from the GitHub releases endpoint. You'll be notified when a new version is available. See the [Updates guide](/desktop/updates) for more details.
+</Info>
+
+---
+
+## Troubleshooting
+
+### Application Won't Launch
+
+**Windows**
+- Ensure you're running Windows 10 version 1903 or later
+- Try running as administrator
+- Check Windows Event Viewer for error messages
+
+**macOS**
+- Verify you've allowed the app in Security & Privacy settings
+- Try removing quarantine attribute: `xattr -d com.apple.quarantine /Applications/Mas\ Agua.app`
+
+**Linux**
+- Verify WebKit2GTK is installed
+- Check console output for missing dependencies
+- Ensure you have execute permissions on the binary
+
+### Connection Issues
+
+If the application can't connect to your monitoring server:
+
+1. Verify the server URL is correct
+2. Check firewall settings allow outbound connections
+3. Ensure your network allows WebSocket connections
+4. Verify SSL certificates if using HTTPS
+
+### Getting Help
+
+For additional support:
+
+- Check the application logs in:
+  - **Windows**: `%APPDATA%\com.masagua.desktop\logs`
+  - **macOS**: `~/Library/Application Support/com.masagua.desktop/logs`
+  - **Linux**: `~/.local/share/com.masagua.desktop/logs`
+- Report issues on the [GitHub repository](https://github.com/CspmIT/mas-agua-front/issues)
+
+---
+
+## Next Steps
+
+Now that you've installed the desktop application:
+
+- Learn about [Auto-Updates](/desktop/updates) to keep your application current
+- Explore the [Dashboard Configuration](/dashboard/overview) guide
+- Set up [Real-time Monitoring](/monitoring/real-time) for your water treatment system

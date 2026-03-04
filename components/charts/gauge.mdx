@@ -1,0 +1,449 @@
+---
+title: 'Gauge'
+description: 'Speedometer-style gauge component for displaying real-time sensor values with visual thresholds and customizable ranges'
+icon: 'gauge-high'
+---
+
+## Overview
+
+The Gauge component renders a speedometer-style indicator ideal for displaying real-time measurements like pressure, flow rate, temperature, or any numeric value within a defined range. Features include animated needle, progress bar, and "no data" state handling.
+
+## Props
+
+<ParamField path="value" type="number | null" required>
+  Current sensor value to display. Set to `null`, `undefined`, `''`, or `NaN` to show "Sin datos" (no data) state.
+  
+  ```javascript
+  value={45.8}           // Valid measurement
+  value={null}           // No data available
+  value={undefined}      // No data
+  ```
+</ParamField>
+
+<ParamField path="maxValue" type="number" required>
+  Maximum value on the gauge scale. Defines the upper limit of the arc.
+  
+  ```javascript
+  maxValue={100}         // 0-100 scale
+  maxValue={500}         // 0-500 scale
+  ```
+  
+  <Note>
+    If `maxValue` is invalid or not provided, defaults to `1` to prevent division errors.
+  </Note>
+</ParamField>
+
+<ParamField path="color" type="string" default="#5c5ac7">
+  Primary color for the progress arc, needle, and anchor. Accepts hex color codes.
+  
+  ```javascript
+  color="#3b82f6"        // Blue
+  color="#10b981"        // Green
+  color="#ef4444"        // Red for warnings
+  ```
+</ParamField>
+
+<ParamField path="unidad" type="string" default="">
+  Unit of measurement displayed after the value (e.g., "m³/h", "°C", "PSI").
+  
+  ```javascript
+  unidad="m³/h"          // Flow rate
+  unidad="°C"            // Temperature
+  unidad="mg/L"          // Concentration
+  ```
+</ParamField>
+
+<ParamField path="description" type="string" default="">
+  Primary description text displayed below the value (e.g., sensor name or location).
+  
+  ```javascript
+  description="Caudal Principal"
+  description="Presión Entrada"
+  ```
+</ParamField>
+
+<ParamField path="description2" type="string" default="">
+  Secondary description displayed above the gauge as a title.
+  
+  ```javascript
+  description2="Planta Norte"
+  description2="Línea 1"
+  ```
+</ParamField>
+
+## Visual Design
+
+### Gauge Arc Configuration
+
+<ResponseField name="Start Angle">
+  210° - Arc begins at bottom-left
+</ResponseField>
+
+<ResponseField name="End Angle">
+  -30° - Arc ends at bottom-right (creates 240° total sweep)
+</ResponseField>
+
+<ResponseField name="Radius">
+  95% of container - Maximizes use of available space
+</ResponseField>
+
+### Progress Bar
+
+<ParamField path="Width">
+  22px rounded bar overlaying the background arc
+</ParamField>
+
+<ParamField path="Style">
+  Linear gradient from light to dark based on `color` prop:
+  - Offset 0: `#c7d2fe` (light tint)
+  - Offset 0.5: Custom `color`
+  - Offset 1: `#312e81` (dark tint)
+  
+  When no data available, shows solid gray (`#cbd5e1`)
+</ParamField>
+
+<ParamField path="Round Cap">
+  Enabled - Creates smooth rounded ends on the progress bar
+</ParamField>
+
+### Background Arc
+
+**Width**: 22px
+
+**Color**: Semi-transparent blue-gray (`#657EB333`)
+
+**Function**: Shows the full scale range behind the progress bar
+
+### Scale Markings
+
+<ResponseField name="Split Lines">
+  **Length**: 10px
+  
+  **Width**: 2px
+  
+  **Color**: Medium gray (`#9ca3af`)
+  
+  Major tick marks distributed evenly across the arc
+</ResponseField>
+
+<ResponseField name="Axis Labels">
+  **Distance**: 25px from arc
+  
+  **Size**: 10px
+  
+  **Color**: Medium gray (`#9ca3af`)
+  
+  **Weight**: 450 (medium)
+  
+  Shows numeric values at major divisions
+</ResponseField>
+
+<ResponseField name="Axis Ticks">
+  Hidden - Only split lines (major ticks) are shown
+</ResponseField>
+
+### Needle Configuration
+
+<ParamField path="Length">
+  65% of gauge radius
+</ParamField>
+
+<ParamField path="Width">
+  6px
+</ParamField>
+
+<ParamField path="Color">
+  Matches `color` prop when data available, gray (`#9ca3af`) when no data
+</ParamField>
+
+### Center Anchor (Hub)
+
+<ParamField path="Size">
+  26px circle at needle pivot point
+</ParamField>
+
+<ParamField path="Style">
+  Dark background (`#111827`) with 8px border in `color` (or gray if no data)
+</ParamField>
+
+<ParamField path="Z-Index">
+  Above needle for realistic layering effect
+</ParamField>
+
+## Text Display
+
+The gauge shows two text areas:
+
+### Value Display (Detail)
+
+**Position**: 85% from top (below center)
+
+**Format**: `{value} {unit}` on first line, `{description}` on second line
+
+**Styling**:
+- Value: 24px bold, dark gray (`#111827`)
+- Description: 22px regular, medium gray (`#4b5563`)
+
+**No Data State**: Shows "Sin datos" instead of value
+
+**Precision**: Value formatted to 2 decimal places via `toFixed(2)`
+
+### Title Display
+
+**Position**: 75% from top
+
+**Content**: `description2` prop
+
+**Styling**: 16px, dark gray (`#374151`)
+
+## Validation Logic
+
+The component uses a validation helper to determine data availability:
+
+```javascript
+const isValidNumber = (v) =>
+  v !== null &&
+  v !== undefined &&
+  v !== '' &&
+  !isNaN(Number(v))
+```
+
+This ensures safe handling of:
+- Null/undefined values
+- Empty strings
+- Non-numeric data (NaN)
+- Valid numbers (including 0)
+
+## Usage Examples
+
+### Pressure Gauge
+
+```jsx
+import GaugeSpeed from './components/GaugeSpeed'
+
+function PressureGauge({ pressure }) {
+  return (
+    <div style={{ width: '300px', height: '300px' }}>
+      <GaugeSpeed
+        value={pressure}
+        maxValue={150}
+        color="#3b82f6"
+        unidad="PSI"
+        description="Línea Principal"
+        description2="Presión de Entrada"
+      />
+    </div>
+  )
+}
+```
+
+### Flow Rate Meter
+
+```jsx
+import GaugeSpeed from './components/GaugeSpeed'
+
+function FlowMeter({ flowRate, isOnline }) {
+  return (
+    <div style={{ width: '350px', height: '350px' }}>
+      <GaugeSpeed
+        value={isOnline ? flowRate : null}
+        maxValue={500}
+        color="#10b981"
+        unidad="m³/h"
+        description="Caudal Actual"
+        description2="Planta Norte"
+      />
+    </div>
+  )
+}
+```
+
+### Temperature Monitor
+
+```jsx
+import GaugeSpeed from './components/GaugeSpeed'
+
+function TemperatureGauge({ temp }) {
+  // Dynamic color based on temperature range
+  const getColor = (t) => {
+    if (!t) return '#6b7280'  // Gray for no data
+    if (t < 15) return '#3b82f6'  // Blue for cold
+    if (t < 25) return '#10b981'  // Green for normal
+    if (t < 35) return '#f59e0b'  // Amber for warm
+    return '#ef4444'  // Red for hot
+  }
+
+  return (
+    <div style={{ width: '280px', height: '280px' }}>
+      <GaugeSpeed
+        value={temp}
+        maxValue={50}
+        color={getColor(temp)}
+        unidad="°C"
+        description="Agua de Proceso"
+        description2="Temperatura"
+      />
+    </div>
+  )
+}
+```
+
+### pH Level Indicator
+
+```jsx
+import GaugeSpeed from './components/GaugeSpeed'
+
+function PHGauge({ phValue }) {
+  return (
+    <div style={{ width: '300px', height: '300px' }}>
+      <GaugeSpeed
+        value={phValue}
+        maxValue={14}
+        color="#8b5cf6"
+        unidad="pH"
+        description="Nivel de pH"
+        description2="Tanque de Contacto"
+      />
+    </div>
+  )
+}
+```
+
+### Chlorine Residual
+
+```jsx
+import GaugeSpeed from './components/GaugeSpeed'
+
+function ChlorineGauge({ chlorine }) {
+  return (
+    <div style={{ width: '320px', height: '320px' }}>
+      <GaugeSpeed
+        value={chlorine}
+        maxValue={5}
+        color="#22c55e"
+        unidad="mg/L"
+        description="Cloro Residual"
+        description2="Salida de Planta"
+      />
+    </div>
+  )
+}
+```
+
+### Multi-Gauge Dashboard
+
+```jsx
+import GaugeSpeed from './components/GaugeSpeed'
+
+function ProcessDashboard({ sensors }) {
+  return (
+    <div style={{ 
+      display: 'grid', 
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+      gap: '24px',
+      padding: '20px'
+    }}>
+      <div style={{ height: '280px' }}>
+        <GaugeSpeed
+          value={sensors.pressure}
+          maxValue={100}
+          color="#3b82f6"
+          unidad="PSI"
+          description="Presión"
+          description2="Bomba Principal"
+        />
+      </div>
+      
+      <div style={{ height: '280px' }}>
+        <GaugeSpeed
+          value={sensors.flow}
+          maxValue={300}
+          color="#10b981"
+          unidad="m³/h"
+          description="Caudal"
+          description2="Línea Principal"
+        />
+      </div>
+      
+      <div style={{ height: '280px' }}>
+        <GaugeSpeed
+          value={sensors.turbidity}
+          maxValue={10}
+          color="#f59e0b"
+          unidad="NTU"
+          description="Turbidez"
+          description2="Agua Tratada"
+        />
+      </div>
+    </div>
+  )
+}
+```
+
+## Animation
+
+<Note>
+  **Value Animation**: Disabled by default (`valueAnimation: false`) for instant updates. Enable in source code for smooth needle transitions.
+</Note>
+
+## Color Recommendations
+
+| Measurement Type | Suggested Color | Hex Code |
+|-----------------|-----------------|----------|
+| Pressure | Blue | `#3b82f6` |
+| Flow Rate | Green | `#10b981` |
+| Temperature | Orange | `#f59e0b` |
+| pH Level | Purple | `#8b5cf6` |
+| Turbidity | Amber | `#f59e0b` |
+| Chlorine | Green (bright) | `#22c55e` |
+| Alarms/Critical | Red | `#ef4444` |
+
+## Responsive Considerations
+
+The gauge scales to fit its container. Recommended minimum size:
+
+```jsx
+// Minimum readable size
+<div style={{ width: '200px', height: '200px' }}>
+  <GaugeSpeed {...props} />
+</div>
+
+// Optimal size
+<div style={{ width: '300px', height: '300px' }}>
+  <GaugeSpeed {...props} />
+</div>
+
+// Responsive
+<div style={{ 
+  width: '100%', 
+  maxWidth: '400px', 
+  aspectRatio: '1/1' 
+}}>
+  <GaugeSpeed {...props} />
+</div>
+```
+
+## Accessibility
+
+- Include units in the `unidad` prop for clarity
+- Use descriptive text in `description` and `description2`
+- Ensure sufficient color contrast between gauge elements and background
+- Consider providing a text-based alternative for screen readers
+
+## Performance
+
+- **Rendering**: Canvas-based (efficient for real-time updates)
+- **Updates**: Re-renders on prop changes only (memoize parent data when possible)
+- **Animation**: Disabled by default for performance
+
+## Related Components
+
+- [Liquid Fill](/components/charts/liquid-fill) - For percentage-based measurements
+- [Line Chart](/components/charts/line-chart) - For historical trends of gauge values
+- [Boolean Chart](/components/charts/boolean-chart) - For binary state indicators
+
+## Source Reference
+
+**File**: `~/workspace/source/src/modules/Charts/components/GaugeSpeed.jsx:9`
+
+Built with Apache ECharts for the Centinela water treatment monitoring system.

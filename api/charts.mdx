@@ -1,0 +1,469 @@
+---
+title: 'Charts'
+description: 'Create and manage data visualizations for monitoring dashboards'
+---
+
+## Overview
+
+Charts in Centinela provide real-time and historical visualization of monitoring variables. The system supports multiple chart types for different data visualization needs.
+
+## Chart Types
+
+- **LineChart**: Time-series line graphs
+- **BarChart**: Bar chart comparisons
+- **PieChart / DoughnutChart**: Proportion visualizations
+- **BooleanChart**: Binary state indicators
+- **MultipleBooleanChart**: Multiple boolean state displays
+- **BoardChart**: Dashboard containers with multiple charts
+- **PumpControl**: Pump status and control interface
+
+## List All Charts
+
+Retrieve all configured charts:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/allCharts" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Caudal Diario Planta Principal",
+      "type": "LineChart",
+      "order": 1,
+      "status": 1
+    },
+    {
+      "id": 2,
+      "name": "Distribución Consumo por Sector",
+      "type": "PieChart",
+      "order": 2,
+      "status": 1
+    },
+    {
+      "id": 3,
+      "name": "Estado Bombas Principales",
+      "type": "MultipleBooleanChart",
+      "order": 3,
+      "status": 1
+    },
+    {
+      "id": 4,
+      "name": "Panel Indicadores Principales",
+      "type": "BoardChart",
+      "order": 0,
+      "status": 1
+    }
+  ]
+}
+```
+
+<ResponseField name="id" type="integer">
+  Unique chart identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Chart display title
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Chart type (LineChart, BarChart, PieChart, etc.)
+</ResponseField>
+
+<ResponseField name="order" type="integer">
+  Display order in dashboard
+</ResponseField>
+
+<ResponseField name="status" type="integer">
+  Active status (1 = active, 0 = inactive)
+</ResponseField>
+
+## Get Charts for Indicators
+
+Retrieve charts configured for dashboard indicators:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/indicatorCharts" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Presión Red Principal",
+      "type": "LineChart",
+      "order": 1,
+      "status": 1,
+      "ChartData": [
+        {
+          "id": 1,
+          "chart_id": 1,
+          "influx_var_id": 12,
+          "InfluxVars": {
+            "id": 12,
+            "name": "Presión Principal",
+            "unit": "bar",
+            "type": "last",
+            "calc": false,
+            "varsInflux": { /* ... */ }
+          }
+        }
+      ],
+      "ChartConfig": [
+        {
+          "id": 1,
+          "chart_id": 1,
+          "key": "line.color",
+          "value": "#3b82f6"
+        },
+        {
+          "id": 2,
+          "chart_id": 1,
+          "key": "line.width",
+          "value": "2"
+        }
+      ]
+    }
+  ]
+}
+```
+
+<ResponseField name="ChartData" type="array">
+  Array of variable associations for the chart
+</ResponseField>
+
+<ResponseField name="ChartConfig" type="array">
+  Array of configuration key-value pairs for chart styling
+</ResponseField>
+
+## Update Chart Status
+
+Activate or deactivate a chart:
+
+```bash cURL
+curl -X PUT "https://masagua.cooptech.com.ar/api/charts/status" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 1,
+    "status": 1
+  }'
+```
+
+<ParamField body="id" type="integer" required>
+  Chart ID
+</ParamField>
+
+<ParamField body="status" type="integer" required>
+  Current status (will be toggled: 1 → 0, 0 → 1)
+</ParamField>
+
+**Response:**
+
+```json
+{
+  "data": true
+}
+```
+
+## Chart Configuration Keys
+
+### Line Chart
+
+<ParamField query="line.color" type="string">
+  Line color (hex format, e.g., `#3b82f6`)
+</ParamField>
+
+<ParamField query="line.width" type="string">
+  Line thickness in pixels
+</ParamField>
+
+<ParamField query="line.fill" type="boolean">
+  Whether to fill area under line
+</ParamField>
+
+<ParamField query="line.tension" type="string">
+  Line curve tension (0 = straight, 0.4 = smooth)
+</ParamField>
+
+### Bar Chart
+
+<ParamField query="bar.color" type="string">
+  Bar color
+</ParamField>
+
+<ParamField query="bar.borderWidth" type="string">
+  Bar border width
+</ParamField>
+
+<ParamField query="bar.borderColor" type="string">
+  Bar border color
+</ParamField>
+
+### Pie/Doughnut Chart
+
+<ParamField query="pie.colors" type="array">
+  Array of colors for segments
+</ParamField>
+
+<ParamField query="doughnut.cutout" type="string">
+  Center cutout percentage (e.g., "50%")
+</ParamField>
+
+### Boolean Chart
+
+<ParamField query="boolean.trueColor" type="string">
+  Color when value is true/ON
+</ParamField>
+
+<ParamField query="boolean.falseColor" type="string">
+  Color when value is false/OFF
+</ParamField>
+
+<ParamField query="boolean.trueLabel" type="string">
+  Label text for true state
+</ParamField>
+
+<ParamField query="boolean.falseLabel" type="string">
+  Label text for false state
+</ParamField>
+
+### Board Chart
+
+<ParamField query="board.top.leftChartId" type="integer">
+  Chart ID for top-left position
+</ParamField>
+
+<ParamField query="board.top.rightChartId" type="integer">
+  Chart ID for top-right position
+</ParamField>
+
+<ParamField query="board.columns" type="integer">
+  Number of columns in board layout
+</ParamField>
+
+## Get Multiple Influx Data
+
+Retrieve real-time values for multiple variables (used for live chart updates):
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/multipleDataInflux" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "dataInflux": {
+        "id": 12,
+        "name": "Presión Principal",
+        "unit": "bar",
+        "varsInflux": {
+          "Presión Principal": {
+            "calc_topic": "presion/principal",
+            "calc_field": "value",
+            "calc_time": 30,
+            "calc_unit": "s",
+            "calc_period": 10,
+            "calc_unit_period": "s",
+            "calc_type_period": "last"
+          }
+        }
+      }
+    },
+    {
+      "dataInflux": {
+        "id": 8,
+        "name": "Cloro Residual",
+        "unit": "mg/L",
+        "varsInflux": { /* ... */ }
+      }
+    }
+  ]'
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "12": 4.2,
+    "8": 0.85
+  }
+}
+```
+
+The response is a map of variable ID to current value.
+
+<Note>
+This endpoint is typically called every 30 seconds for real-time chart updates.
+</Note>
+
+## Example: Creating a Line Chart
+
+While the full chart creation endpoint isn't shown in the source, charts are typically configured with:
+
+1. **Chart metadata**: name, type, order
+2. **Data associations**: link to variables
+3. **Configuration**: styling and behavior
+
+```javascript
+// Example configuration structure
+const chartConfig = {
+  name: "Presión Últimas 24 Horas",
+  type: "LineChart",
+  order: 1,
+  status: 1,
+  data: [
+    {
+      influx_var_id: 12,
+      label: "Presión Principal"
+    }
+  ],
+  config: [
+    { key: "line.color", value: "#3b82f6" },
+    { key: "line.width", value: "3" },
+    { key: "line.fill", value: "true" },
+    { key: "line.tension", value: "0.4" }
+  ]
+};
+```
+
+## Chart Polling Pattern
+
+For real-time charts, implement polling:
+
+```javascript
+const updateCharts = async () => {
+  // Extract all variables from charts
+  const allVars = charts.flatMap(chart => 
+    chart.ChartData.map(item => ({
+      dataInflux: item.InfluxVars
+    }))
+  );
+  
+  // Fetch current values
+  const { data } = await request(
+    `${baseUrl}/multipleDataInflux`,
+    'POST',
+    allVars
+  );
+  
+  // Update chart data
+  setInfluxValues(data);
+};
+
+// Poll every 30 seconds
+const interval = setInterval(updateCharts, 30000);
+```
+
+## Board Chart Layout
+
+Board charts act as containers for other charts:
+
+```json
+{
+  "type": "BoardChart",
+  "ChartConfig": [
+    { "key": "board.top.leftChartId", "value": "5" },
+    { "key": "board.top.rightChartId", "value": "6" }
+  ]
+}
+```
+
+This creates a board with two charts side-by-side.
+
+## Boolean Charts
+
+Display binary states (pump ON/OFF, valve open/closed):
+
+```json
+{
+  "type": "BooleanChart",
+  "ChartData": [
+    {
+      "influx_var_id": 25,
+      "InfluxVars": {
+        "name": "Bomba Principal",
+        "type": "last"
+      }
+    }
+  ],
+  "ChartConfig": [
+    { "key": "boolean.trueColor", "value": "#22c55e" },
+    { "key": "boolean.falseColor", "value": "#ef4444" },
+    { "key": "boolean.trueLabel", "value": "ENCENDIDA" },
+    { "key": "boolean.falseLabel", "value": "APAGADA" }
+  ]
+}
+```
+
+## Multiple Boolean Charts
+
+Display multiple boolean variables in a grid:
+
+```json
+{
+  "type": "MultipleBooleanChart",
+  "ChartData": [
+    { "influx_var_id": 25, "InfluxVars": { "name": "Bomba 1" } },
+    { "influx_var_id": 26, "InfluxVars": { "name": "Bomba 2" } },
+    { "influx_var_id": 27, "InfluxVars": { "name": "Bomba 3" } }
+  ]
+}
+```
+
+## Chart Types Reference
+
+<Tabs>
+  <Tab title="LineChart">
+    Time-series line graph for continuous variables like pressure, flow, temperature.
+    
+    **Best for**: Trends over time, historical analysis
+  </Tab>
+  
+  <Tab title="BarChart">
+    Bar chart for comparing discrete values or categories.
+    
+    **Best for**: Comparisons, daily/weekly summaries
+  </Tab>
+  
+  <Tab title="PieChart">
+    Circular chart showing proportions.
+    
+    **Best for**: Distribution, percentages
+  </Tab>
+  
+  <Tab title="BooleanChart">
+    Binary state indicator (ON/OFF, open/closed).
+    
+    **Best for**: Equipment status, digital signals
+  </Tab>
+  
+  <Tab title="BoardChart">
+    Container for multiple charts in a dashboard layout.
+    
+    **Best for**: Overview dashboards, control panels
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Variables" icon="code" href="/api/variables">
+    Configure variables for charts
+  </Card>
+  
+  <Card title="Diagrams" icon="diagram-project" href="/api/diagrams">
+    Create interactive system diagrams
+  </Card>
+</CardGroup>

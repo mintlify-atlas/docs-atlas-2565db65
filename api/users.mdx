@@ -1,0 +1,414 @@
+---
+title: 'Users & Permissions'
+description: 'Manage users, profiles, and menu permissions'
+---
+
+## Overview
+
+The Centinela user management system provides role-based access control through profiles and customizable menu permissions. Users are authenticated through the Cooptech central authentication system.
+
+## User Management
+
+### List All Users
+
+Retrieve all users with their profile assignments:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/listUsersPass" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "first_name": "Juan",
+      "last_name": "Pérez",
+      "email": "jperez@example.com",
+      "password": "hashed_password",
+      "id_profile": 1,
+      "status": 1,
+      "date_create": "2023-02-02 11:10:58",
+      "user_create": 0,
+      "date_edit": "2023-05-03 12:28:34",
+      "user_edit": 0,
+      "passwordRecloser": {
+        "id": 5,
+        "password": "temp_password_value"
+      }
+    },
+    {
+      "id": 2,
+      "first_name": "María",
+      "last_name": "González",
+      "email": "mgonzalez@example.com",
+      "id_profile": 2,
+      "status": 1,
+      "date_create": "2023-03-15 09:20:00",
+      "user_create": 1,
+      "date_edit": null,
+      "user_edit": null,
+      "passwordRecloser": null
+    }
+  ]
+}
+```
+
+<ResponseField name="id" type="integer">
+  Unique user identifier
+</ResponseField>
+
+<ResponseField name="first_name" type="string">
+  User first name
+</ResponseField>
+
+<ResponseField name="last_name" type="string">
+  User last name
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  User email address (login credential)
+</ResponseField>
+
+<ResponseField name="id_profile" type="integer">
+  Assigned profile ID
+</ResponseField>
+
+<ResponseField name="status" type="integer">
+  User status (1 = active, 0 = inactive)
+</ResponseField>
+
+<ResponseField name="passwordRecloser" type="object">
+  Temporary password information (if set)
+</ResponseField>
+
+### Update User Password
+
+Set or update a user's password:
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/savePass" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_user": 1,
+    "id": 0,
+    "password": "NewSecurePassword123"
+  }'
+```
+
+<ParamField body="id_user" type="integer" required>
+  User ID
+</ParamField>
+
+<ParamField body="id" type="integer" required>
+  Password record ID (0 for new password)
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  New password (plain text - will be hashed server-side)
+</ParamField>
+
+<Warning>
+Passwords should meet minimum security requirements. The system hashes passwords before storage.
+</Warning>
+
+## Profile Management
+
+### List All Profiles
+
+Retrieve all user profiles:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/listProfiles" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Administrator",
+      "description": "Full system access",
+      "status": 1,
+      "date_create": "2023-01-15 10:00:00",
+      "user_create": 1
+    },
+    {
+      "id": 2,
+      "name": "Operator",
+      "description": "Operational monitoring and control",
+      "status": 1,
+      "date_create": "2023-01-15 10:05:00",
+      "user_create": 1
+    },
+    {
+      "id": 3,
+      "name": "Viewer",
+      "description": "Read-only access to dashboards",
+      "status": 1,
+      "date_create": "2023-01-15 10:10:00",
+      "user_create": 1
+    }
+  ]
+}
+```
+
+<ResponseField name="id" type="integer">
+  Unique profile identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Profile name
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Profile description
+</ResponseField>
+
+<ResponseField name="status" type="integer">
+  Profile status (1 = active)
+</ResponseField>
+
+## Menu Permissions
+
+Centinela uses a hierarchical menu permission system. Permissions can be assigned at the profile level or customized per user.
+
+### Permission Structure
+
+Each menu item has:
+- **View permission**: Can see the menu item
+- **Create permission**: Can create new records
+- **Edit permission**: Can modify existing records
+- **Delete permission**: Can delete records
+
+### Common Menu Items
+
+- **Dashboard**: Main monitoring dashboard
+- **Variables**: Variable configuration
+- **Alarms**: Alarm configuration
+- **Charts**: Chart management
+- **Diagrams**: Diagram editor
+- **Users**: User management (admin only)
+- **Profiles**: Profile management (admin only)
+- **Reports**: Historical reports
+- **Settings**: System configuration
+
+## User Roles
+
+### Administrator
+
+Full system access:
+- Manage users and profiles
+- Configure all system elements
+- Access all monitoring data
+- System configuration
+
+### Operator
+
+Operational access:
+- Monitor real-time data
+- Configure alarms and charts
+- View and edit diagrams
+- Limited user management
+
+### Viewer
+
+Read-only access:
+- View dashboards and diagrams
+- View historical data
+- No configuration changes
+- No user management
+
+## Authentication Flow
+
+<Note>
+Centinela uses the Cooptech central authentication system. See the [Authentication API](/api/authentication) for login details.
+</Note>
+
+1. User authenticates with Cooptech
+2. Cooptech returns user information and token
+3. Exchange token for Centinela-specific token
+4. Centinela validates user and loads permissions
+5. Menu and features filtered by user profile
+
+## User Session Management
+
+### Session Storage
+
+User session data is stored in localStorage:
+
+```javascript
+// User information
+localStorage.setItem('usuario', JSON.stringify({
+  id: userId,
+  email: userEmail,
+  first_name: firstName,
+  last_name: lastName,
+  cliente: clientInfo
+}));
+
+// Cooptech authentication
+localStorage.setItem('usuarioCooptech', JSON.stringify({
+  token: cooптechToken,
+  id_user: userId,
+  cliente: selectedClient
+}));
+
+// Centinela token
+localStorage.setItem('token', centinelaToken);
+```
+
+### Client Selection
+
+Users may have access to multiple clients:
+
+```javascript
+// Get products for user and client
+const products = await request(
+  `${baseUrl}/listProductxUserxClient?id_user=${userId}&id_client=${clientId}`,
+  'GET'
+);
+
+// Find Centinela product
+const centinelaProduct = products.find(p => p.name === 'Centinela');
+```
+
+## Example Use Cases
+
+### Create New Operator
+
+```javascript
+// 1. Create user in Cooptech system
+const cooптechUser = await createCooптechUser({
+  email: 'operator@example.com',
+  first_name: 'Carlos',
+  last_name: 'Martínez'
+});
+
+// 2. Assign Operator profile in Centinela
+const user = {
+  id: cooптechUser.id,
+  id_profile: 2, // Operator profile
+  status: 1
+};
+
+// 3. Set initial password
+await request(`${baseUrl}/savePass`, 'POST', {
+  id_user: user.id,
+  id: 0,
+  password: 'TempPassword123'
+});
+```
+
+### Update User Profile
+
+```javascript
+// Change user from Viewer to Operator
+await request(`${baseUrl}/updateUser`, 'POST', {
+  id: userId,
+  id_profile: 2 // Change to Operator
+});
+```
+
+### Deactivate User
+
+```javascript
+// Deactivate user account
+await request(`${baseUrl}/updateUserStatus`, 'POST', {
+  id: userId,
+  status: 0
+});
+```
+
+## Multi-Client Support
+
+Centinela supports multi-tenant architecture:
+
+### Get Client Schema
+
+```bash cURL
+curl -X GET "https://cooptech.com.ar/api/getSchemaProduct?clientId={clientId}&productId=5" \
+  -H "Authorization: Bearer {cooптechToken}"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "schema_name": "client_morteros_centinela",
+    "influx_name": "morteros_water_data",
+    "product_id": 5,
+    "client_id": 12
+  }
+]
+```
+
+Each client has:
+- Separate database schema
+- Dedicated InfluxDB database
+- Isolated user and permission data
+
+## Security Considerations
+
+<Warning>
+Always implement proper security measures:
+- Use HTTPS for all API requests
+- Validate user permissions server-side
+- Implement password complexity requirements
+- Enable session timeouts
+- Log authentication attempts
+- Implement rate limiting on login endpoints
+</Warning>
+
+### Password Security
+
+- Minimum 8 characters
+- Mix of uppercase, lowercase, numbers
+- Passwords hashed with bcrypt
+- Force password change on first login
+- Temporary passwords expire after first use
+
+### Session Security
+
+- Tokens stored securely in localStorage
+- Tokens validated on every request
+- Sessions expire after inactivity
+- Clear tokens on logout
+
+## Permission Checking
+
+Before accessing features, verify user permissions:
+
+```javascript
+// Check if user can edit variables
+const canEdit = user.profile.permissions.variables.edit;
+
+if (!canEdit) {
+  // Show read-only view or deny access
+  return;
+}
+
+// Proceed with edit operation
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn about authentication flow
+  </Card>
+  
+  <Card title="Variables" icon="code" href="/api/variables">
+    Configure monitoring variables
+  </Card>
+</CardGroup>

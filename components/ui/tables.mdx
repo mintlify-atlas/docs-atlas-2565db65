@@ -1,0 +1,557 @@
+---
+title: 'TableCustom'
+description: 'Advanced data table component with filtering, sorting, pagination, and export capabilities for the Centinela monitoring system'
+icon: 'table'
+---
+
+## Overview
+
+The `TableCustom` component is a powerful, feature-rich table wrapper built on `material-react-table`. It provides extensive functionality for displaying and manipulating tabular data including filtering, sorting, grouping, pagination, and data export to Excel and PDF formats.
+
+## Import
+
+```jsx
+import TableCustom from '../../../components/TableCustom'
+```
+
+## Props
+
+<ParamField path="data" type="array" required>
+  Array of data objects to display in the table. Each object represents a row.
+  
+  ```jsx
+  data={[
+    { id: 1, name: 'Sensor A', value: 45.2, status: 1 },
+    { id: 2, name: 'Sensor B', value: 32.8, status: 0 }
+  ]}
+  ```
+</ParamField>
+
+<ParamField path="columns" type="array" required>
+  Column definitions array. Each column object can include:
+  - `header`: Column header text
+  - `accessorKey`: Key to access data in row objects
+  - `size`: Column width
+  - `Cell`: Custom cell renderer function
+  
+  ```jsx
+  columns={[
+    { header: 'ID', accessorKey: 'id', size: 75 },
+    { header: 'Name', accessorKey: 'name', size: 200 },
+    { 
+      header: 'Status', 
+      accessorKey: 'status',
+      Cell: ({ row }) => row.original.status ? 'Active' : 'Inactive'
+    }
+  ]}
+  ```
+</ParamField>
+
+### Feature Configuration Props
+
+<ParamField path="pagination" type="boolean" default="false">
+  Enable pagination controls.
+</ParamField>
+
+<ParamField path="pageSize" type="number" default="5">
+  Number of rows per page when pagination is enabled.
+</ParamField>
+
+<ParamField path="topToolbar" type="boolean" default="false">
+  Show the top toolbar with search, filter, and action buttons.
+</ParamField>
+
+<ParamField path="filter" type="boolean" default="false">
+  Enable column filtering capabilities.
+</ParamField>
+
+<ParamField path="sort" type="boolean" default="false">
+  Enable column sorting.
+</ParamField>
+
+<ParamField path="hide" type="boolean" default="false">
+  Allow users to show/hide columns.
+</ParamField>
+
+<ParamField path="grouping" type="boolean" default="false">
+  Enable column grouping functionality.
+</ParamField>
+
+<ParamField path="groupBy" type="string">
+  Column accessor key to group by initially.
+  
+  ```jsx
+  groupBy="category"
+  ```
+</ParamField>
+
+<ParamField path="orderBy" type="string">
+  Column accessor key to sort by initially (ascending order).
+  
+  ```jsx
+  orderBy="date"
+  ```
+</ParamField>
+
+<ParamField path="density" type="string">
+  Initial table density. Options: `compact`, `comfortable`, `spacious`.
+</ParamField>
+
+<ParamField path="checkbox" type="boolean" default="false">
+  Enable row selection with checkboxes.
+</ParamField>
+
+<ParamField path="copy" type="boolean" default="false">
+  Enable click-to-copy functionality for cells.
+</ParamField>
+
+### Export Props
+
+<ParamField path="exportExcel" type="boolean" default="false">
+  Show Excel export button in toolbar.
+</ParamField>
+
+<ParamField path="exportPdf" type="boolean" default="false">
+  Show PDF export button in toolbar.
+</ParamField>
+
+### Styling Props
+
+<ParamField path="header" type="object">
+  Custom styles object for table header cells.
+  
+  ```jsx
+  header={{ backgroundColor: '#f0f0f0', fontWeight: 'bold' }}
+  ```
+</ParamField>
+
+<ParamField path="footer" type="object">
+  Custom styles for the bottom toolbar.
+</ParamField>
+
+<ParamField path="card" type="object">
+  Custom styles for the table container.
+</ParamField>
+
+<ParamField path="bodyContent" type="object">
+  Custom styles for table body cells.
+</ParamField>
+
+<ParamField path="toolbarClass" type="object">
+  Custom styles for the top toolbar.
+</ParamField>
+
+### Advanced Props
+
+<ParamField path="btnCustomToolbar" type="ReactNode">
+  Custom buttons to add to the toolbar.
+  
+  ```jsx
+  btnCustomToolbar={<Button>Custom Action</Button>}
+  ```
+</ParamField>
+
+<ParamField path="ChangeColorRow" type="function">
+  Function to conditionally change row background color.
+  
+  ```jsx
+  ChangeColorRow={(row) => row.original.alert === true}
+  ```
+  Returns yellow background if true.
+</ParamField>
+
+<ParamField path="columnVisibility" type="object">
+  Initial column visibility state.
+  
+  ```jsx
+  columnVisibility={{ id: false, internalCode: false }}
+  ```
+</ParamField>
+
+<ParamField path="onColumnVisibilityChange" type="function">
+  Callback when column visibility changes.
+</ParamField>
+
+<ParamField path="getPage" type="function">
+  Callback function that receives the table instance.
+</ParamField>
+
+<ParamField path="checkAlert" type="boolean">
+  Show a "clear alerts" button in toolbar when combined with `getPage`.
+</ParamField>
+
+## Usage Examples
+
+### Basic Table
+
+```jsx
+const columns = [
+  { header: 'ID', accessorKey: 'id' },
+  { header: 'Name', accessorKey: 'name' },
+  { header: 'Value', accessorKey: 'value' }
+]
+
+const data = [
+  { id: 1, name: 'Sensor A', value: 45.2 },
+  { id: 2, name: 'Sensor B', value: 32.8 }
+]
+
+<TableCustom 
+  columns={columns} 
+  data={data} 
+/>
+```
+
+### Paginated Table with Toolbar
+
+```jsx
+<TableCustom
+  columns={columns}
+  data={charts}
+  pagination={true}
+  pageSize={10}
+  topToolbar={true}
+  filter={true}
+  sort={true}
+  hide={true}
+/>
+```
+
+### Table with Excel and PDF Export
+
+```jsx
+<TableCustom
+  columns={columnsTable}
+  data={alarms}
+  pagination={true}
+  pageSize={15}
+  topToolbar={true}
+  exportExcel={true}
+  exportPdf={true}
+  filter={true}
+  sort={true}
+/>
+```
+
+### Table with Custom Cell Rendering
+
+```jsx
+const columns = [
+  { header: 'ID', accessorKey: 'id', size: 75 },
+  { header: 'Title', accessorKey: 'name', size: 300 },
+  {
+    header: 'Status',
+    accessorKey: 'status',
+    Cell: ({ row }) => (
+      <Typography
+        variant="body2"
+        fontWeight={700}
+        sx={{
+          color: row.original.status ? 'success.main' : 'error.main',
+        }}
+      >
+        {row.original.status ? 'Active' : 'Inactive'}
+      </Typography>
+    ),
+  },
+  {
+    header: 'Actions',
+    accessorKey: 'actions',
+    Cell: ({ row }) => (
+      <Box display="flex" gap={1}>
+        <Button 
+          variant="contained" 
+          size="small"
+          onClick={() => handleEdit(row.original.id)}
+        >
+          Edit
+        </Button>
+        <Button 
+          variant="outlined" 
+          size="small"
+          onClick={() => handleDelete(row.original.id)}
+        >
+          Delete
+        </Button>
+      </Box>
+    ),
+  },
+]
+
+<TableCustom
+  columns={columns}
+  data={data}
+  pagination={true}
+  pageSize={10}
+  topToolbar={true}
+/>
+```
+
+### Table with Grouped Columns
+
+```jsx
+const columns = [
+  { header: 'ID', accessorKey: 'id' },
+  {
+    header: 'Measurements',
+    columns: [
+      { header: 'Temperature', accessorKey: 'temp' },
+      { header: 'Pressure', accessorKey: 'pressure' },
+      { header: 'Flow', accessorKey: 'flow' }
+    ]
+  },
+  { header: 'Status', accessorKey: 'status' }
+]
+
+<TableCustom
+  columns={columns}
+  data={data}
+  pagination={true}
+  topToolbar={true}
+  exportExcel={true}
+/>
+```
+
+### Table with Row Selection
+
+```jsx
+<TableCustom
+  columns={columns}
+  data={data}
+  checkbox={true}
+  topToolbar={true}
+  pagination={true}
+/>
+```
+
+### Compact Mobile Table
+
+```jsx
+<TableCustom
+  columns={columns}
+  data={data}
+  density="compact"
+  pagination={true}
+  pageSize={5}
+/>
+```
+
+## Common Use Cases
+
+<Tabs>
+  <Tab title="Admin Dashboard">
+    ```jsx
+    import { useState, useEffect } from 'react'
+    import TableCustom from '../../../components/TableCustom'
+    import { request } from '../../../utils/js/request'
+
+    function ChartsTable() {
+      const [charts, setCharts] = useState([])
+      const [columns, setColumns] = useState([])
+
+      useEffect(() => {
+        fetchData()
+      }, [])
+
+      const fetchData = async () => {
+        const { data } = await request('/api/charts', 'GET')
+        
+        const cols = [
+          { header: 'ID', accessorKey: 'id', size: 75 },
+          { header: 'Title', accessorKey: 'name', size: 300 },
+          { header: 'Type', accessorKey: 'type' },
+          { header: 'Order', accessorKey: 'order' },
+          {
+            header: 'Actions',
+            accessorKey: 'actions',
+            Cell: ({ row }) => (
+              <Button onClick={() => handleEdit(row.original.id)}>
+                Edit
+              </Button>
+            ),
+          },
+        ]
+        
+        setColumns(cols)
+        setCharts(data)
+      }
+
+      return (
+        <TableCustom
+          columns={columns}
+          data={charts}
+          pagination={true}
+          pageSize={10}
+          topToolbar={true}
+          filter={true}
+          sort={true}
+          hide={true}
+          exportExcel={true}
+          exportPdf={true}
+        />
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Monitoring Data">
+    ```jsx
+    function SensorDataTable({ sensorId }) {
+      const [data, setData] = useState([])
+
+      const columns = [
+        { header: 'Timestamp', accessorKey: 'timestamp' },
+        { header: 'Value', accessorKey: 'value' },
+        { header: 'Unit', accessorKey: 'unit' },
+        {
+          header: 'Status',
+          accessorKey: 'status',
+          Cell: ({ row }) => (
+            <span className={row.original.inRange ? 'text-green-600' : 'text-red-600'}>
+              {row.original.inRange ? 'Normal' : 'Alert'}
+            </span>
+          ),
+        },
+      ]
+
+      return (
+        <TableCustom
+          columns={columns}
+          data={data}
+          pagination={true}
+          pageSize={20}
+          topToolbar={true}
+          orderBy="timestamp"
+          ChangeColorRow={(row) => !row.original.inRange}
+          exportExcel={true}
+        />
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Grouped Data">
+    ```jsx
+    function GroupedTable() {
+      const columns = [
+        { header: 'Plant', accessorKey: 'plant' },
+        { header: 'Sensor', accessorKey: 'sensor' },
+        { header: 'Value', accessorKey: 'value' },
+      ]
+
+      return (
+        <TableCustom
+          columns={columns}
+          data={data}
+          groupBy="plant"
+          grouping={true}
+          topToolbar={true}
+          pagination={true}
+        />
+      )
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Custom Toolbar">
+    ```jsx
+    function CustomToolbarTable() {
+      const handleCustomAction = () => {
+        console.log('Custom action triggered')
+      }
+
+      return (
+        <TableCustom
+          columns={columns}
+          data={data}
+          topToolbar={true}
+          btnCustomToolbar={
+            <Button 
+              variant="contained" 
+              onClick={handleCustomAction}
+              startIcon={<AddIcon />}
+            >
+              Add New
+            </Button>
+          }
+          exportExcel={true}
+          filter={true}
+        />
+      )
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Component Source
+
+Location: `~/workspace/source/src/components/TableCustom/index.jsx`
+
+## Empty State
+
+When the table has no data, it displays a custom "No Registros" (No Records) component with an illustration.
+
+Location: `~/workspace/source/src/components/TableCustom/NoRegisterTable/index.jsx`
+
+<Note>
+  TableCustom automatically adapts to mobile devices with a compact density setting when the screen width is less than 750px.
+</Note>
+
+## Export Functionality
+
+### Excel Export
+
+The Excel export includes:
+- Grouped column headers (if using nested columns)
+- All visible data (respects filters)
+- Automatic date formatting
+- Configurable filename (default: "Excel-export.csv")
+
+### PDF Export
+
+The PDF export includes:
+- All column headers
+- All visible rows
+- Automatic date formatting
+- Configurable filename (default: "pdf-export.pdf")
+
+## Styling Features
+
+### Alternating Row Colors
+
+The table automatically applies alternating row colors:
+- Odd rows: `#f9fafb`
+- Even rows: `#f1f5f9`
+- Hover: `#e2e8f0`
+
+### Conditional Row Highlighting
+
+Use the `ChangeColorRow` prop to highlight specific rows:
+
+```jsx
+<TableCustom
+  columns={columns}
+  data={data}
+  ChangeColorRow={(row) => row.original.alert === true}
+/>
+```
+
+Matching rows will have a yellow background with black text.
+
+## Localization
+
+The component is localized to Spanish:
+- "Filas por página" - Rows per page
+- "Ocultar todo" - Hide all
+- "Mostrar todo" - Show all
+- "Escriba su búsqueda" - Write your search
+
+## Best Practices
+
+1. **Column Sizing**: Explicitly set column sizes for important columns to prevent layout shifts
+2. **Pagination**: Enable pagination for tables with more than 20 rows
+3. **Export Options**: Provide export functionality for data that users may need offline
+4. **Custom Cells**: Use the `Cell` property for formatted data (dates, status badges, actions)
+5. **Mobile Optimization**: Test tables on mobile devices and adjust density/column visibility
+6. **Performance**: For large datasets (>1000 rows), consider server-side pagination
+7. **Accessibility**: Ensure custom cell renderers maintain proper contrast and keyboard navigation

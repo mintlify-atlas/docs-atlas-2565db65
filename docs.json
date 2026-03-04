@@ -1,122 +1,134 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Centinela",
+  "theme": "aspen",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#218ecc",
+    "light": "#ebf7f8",
+    "dark": "#7c98b0"
   },
-  "favicon": "/favicon.svg",
+
+  "logo": {
+    "light": "https://media.brand.dev/b5677683-3b91-41e1-b24d-164b73c500c4.png",
+    "dark": "https://media.brand.dev/b5677683-3b91-41e1-b24d-164b73c500c4.png"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/CspmIT/centinela-front"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/CspmIT/centinela-front"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
+              "introduction",
               "quickstart",
-              "development"
+              "installation"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Features",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "features/dashboard",
+              "features/charts",
+              "features/diagrams",
+              "features/alarms",
+              "features/real-time-monitoring"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "User Management",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "user-management/authentication",
+              "user-management/roles",
+              "user-management/external-users"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Configuration",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "configuration/charts",
+              "configuration/variables",
+              "configuration/alarms",
+              "configuration/diagrams",
+              "configuration/menu"
+            ]
+          },
+          {
+            "group": "Desktop Application",
+            "pages": [
+              "desktop/overview",
+              "desktop/installation",
+              "desktop/updates"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/docker",
+              "deployment/environment-variables",
+              "deployment/nginx"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Components",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Chart Types",
             "pages": [
-              "api-reference/introduction"
+              "components/charts/line-chart",
+              "components/charts/bar-chart",
+              "components/charts/boolean-chart",
+              "components/charts/pie-chart",
+              "components/charts/gauge",
+              "components/charts/liquid-fill"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "UI Components",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "components/ui/buttons",
+              "components/ui/cards",
+              "components/ui/tables",
+              "components/ui/inputs"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/charts",
+              "api/diagrams",
+              "api/alarms",
+              "api/variables",
+              "api/users"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

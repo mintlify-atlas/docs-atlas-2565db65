@@ -1,0 +1,415 @@
+---
+title: 'Variables'
+description: 'Manage InfluxDB variables for water treatment monitoring'
+---
+
+## Overview
+
+Variables in Centinela represent monitoring points in your water treatment system. They can be simple InfluxDB queries or calculated values based on formulas.
+
+## Variable Types
+
+### Simple Variables
+
+Direct queries from InfluxDB with a single topic and field.
+
+### Calculated Variables
+
+Computed from multiple InfluxDB variables using custom formulas (e.g., `{var1} + {var2} * 0.5`).
+
+### Binary Compressed Variables
+
+Single byte values where individual bits represent different boolean states (up to 8 bits per variable).
+
+## List All Variables
+
+Retrieve all configured InfluxDB variables:
+
+```bash cURL
+curl -X GET "https://masagua.cooptech.com.ar/api/getVarsInflux" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Caudal Entrada Planta",
+      "unit": "m³/h",
+      "type": "last",
+      "calc": false,
+      "process": "Captación",
+      "binary_compressed": false,
+      "varsInflux": {
+        "Caudal Entrada Planta": {
+          "calc_topic": "planta/caudal",
+          "calc_field": "entrada",
+          "calc_time": 30,
+          "calc_unit": "s",
+          "calc_period": 10,
+          "calc_unit_period": "s",
+          "calc_type_period": "last"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Cloro Residual Calculado",
+      "unit": "mg/L",
+      "type": "last",
+      "calc": true,
+      "process": "Desinfección",
+      "binary_compressed": false,
+      "equation": [
+        {"value": "Cloro_Total", "type": "variable"},
+        {"value": "-", "type": "operator"},
+        {"value": "Cloro_Consumido", "type": "variable"}
+      ],
+      "varsInflux": {
+        "Cloro_Total": {
+          "calc_topic": "laboratorio/cloro",
+          "calc_field": "total",
+          "calc_time": 1,
+          "calc_unit_topic": "m",
+          "calc_period": 30,
+          "calc_unit_period": "s",
+          "calc_type_period": "mean"
+        },
+        "Cloro_Consumido": {
+          "calc_topic": "laboratorio/cloro",
+          "calc_field": "consumido",
+          "calc_time": 1,
+          "calc_unit_topic": "m",
+          "calc_period": 30,
+          "calc_unit_period": "s",
+          "calc_type_period": "mean"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Estados Bombas",
+      "unit": "bool",
+      "type": "last",
+      "calc": false,
+      "process": "Bombeo",
+      "binary_compressed": true,
+      "bits": [
+        {"id": 1, "name": "Bomba 1", "bit": 0},
+        {"id": 2, "name": "Bomba 2", "bit": 1},
+        {"id": 3, "name": "Bomba 3", "bit": 2}
+      ],
+      "varsInflux": {
+        "Estados Bombas": {
+          "calc_topic": "bombas/estados",
+          "calc_field": "byte",
+          "calc_time": 10,
+          "calc_unit": "s",
+          "calc_period": 5,
+          "calc_unit_period": "s",
+          "calc_type_period": "last"
+        }
+      }
+    }
+  ]
+}
+```
+
+<ResponseField name="id" type="integer">
+  Unique variable identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Variable display name
+</ResponseField>
+
+<ResponseField name="unit" type="string">
+  Measurement unit (m³/h, mg/L, °C, etc.)
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Data type: `last` (instantaneous) or `history` (historical)
+</ResponseField>
+
+<ResponseField name="calc" type="boolean">
+  Whether this is a calculated variable
+</ResponseField>
+
+<ResponseField name="process" type="string">
+  Process category (Captación, Filtración, Desinfección, etc.)
+</ResponseField>
+
+<ResponseField name="binary_compressed" type="boolean">
+  Whether this variable uses bit compression
+</ResponseField>
+
+<ResponseField name="equation" type="array">
+  Formula for calculated variables (array of operators and variable references)
+</ResponseField>
+
+<ResponseField name="bits" type="array">
+  Bit definitions for binary compressed variables (max 8 bits)
+</ResponseField>
+
+<ResponseField name="varsInflux" type="object">
+  InfluxDB query configuration for each variable used
+</ResponseField>
+
+## Create or Update Variable
+
+Create a new variable or update an existing one:
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/saveVariable" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 0,
+    "name": "Presión Salida Filtros",
+    "unit": "bar",
+    "type": "last",
+    "calc": false,
+    "process": "Filtración",
+    "binary_compressed": false,
+    "varsInflux": {
+      "Presión Salida Filtros": {
+        "calc_topic": "filtros/presion",
+        "calc_field": "salida",
+        "calc_time": 30,
+        "calc_unit": "s",
+        "calc_period": 10,
+        "calc_unit_period": "s",
+        "calc_type_period": "last"
+      }
+    }
+  }'
+```
+
+<ParamField body="id" type="integer" required>
+  Variable ID (0 for new variables)
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Variable name
+</ParamField>
+
+<ParamField body="unit" type="string" required>
+  Measurement unit
+</ParamField>
+
+<ParamField body="type" type="string" required>
+  Variable type: `last` or `history`
+</ParamField>
+
+<ParamField body="calc" type="boolean" required>
+  Whether this is a calculated variable
+</ParamField>
+
+<ParamField body="process" type="string" required>
+  Process category name
+</ParamField>
+
+<ParamField body="binary_compressed" type="boolean">
+  Enable bit compression (default: false)
+</ParamField>
+
+<ParamField body="bits" type="array">
+  Array of bit definitions (required if binary_compressed is true)
+</ParamField>
+
+<ParamField body="equation" type="array">
+  Formula array (required if calc is true)
+</ParamField>
+
+<ParamField body="varsInflux" type="object" required>
+  InfluxDB query configuration
+</ParamField>
+
+### Creating a Calculated Variable
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/saveVariable" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 0,
+    "name": "Eficiencia Filtración",
+    "unit": "%",
+    "type": "last",
+    "calc": true,
+    "process": "Filtración",
+    "equation": [
+      {"value": "(", "type": "operator"},
+      {"value": "Turbiedad_Entrada", "type": "variable"},
+      {"value": "-", "type": "operator"},
+      {"value": "Turbiedad_Salida", "type": "variable"},
+      {"value": ")", "type": "operator"},
+      {"value": "/", "type": "operator"},
+      {"value": "Turbiedad_Entrada", "type": "variable"},
+      {"value": "*", "type": "operator"},
+      {"value": "100", "type": "number"}
+    ],
+    "varsInflux": {
+      "Turbiedad_Entrada": {
+        "calc_topic": "filtros/turbiedad",
+        "calc_field": "entrada",
+        "calc_time": 1,
+        "calc_unit_topic": "m",
+        "calc_period": 30,
+        "calc_unit_period": "s",
+        "calc_type_period": "mean"
+      },
+      "Turbiedad_Salida": {
+        "calc_topic": "filtros/turbiedad",
+        "calc_field": "salida",
+        "calc_time": 1,
+        "calc_unit_topic": "m",
+        "calc_period": 30,
+        "calc_unit_period": "s",
+        "calc_type_period": "mean"
+      }
+    }
+  }'
+```
+
+### Creating a Binary Compressed Variable
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/saveVariable" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 0,
+    "name": "Estados Válvulas Entrada",
+    "unit": "bool",
+    "type": "last",
+    "calc": false,
+    "process": "Captación",
+    "binary_compressed": true,
+    "bits": [
+      {"id": 1, "name": "Válvula Principal", "bit": 0},
+      {"id": 2, "name": "Válvula Secundaria", "bit": 1},
+      {"id": 3, "name": "Válvula Purga", "bit": 2}
+    ],
+    "varsInflux": {
+      "Estados Válvulas Entrada": {
+        "calc_topic": "valvulas/estados",
+        "calc_field": "entrada_byte",
+        "calc_time": 10,
+        "calc_unit": "s",
+        "calc_period": 5,
+        "calc_unit_period": "s",
+        "calc_type_period": "last"
+      }
+    }
+  }'
+```
+
+## Delete Variable
+
+Delete a variable by ID:
+
+```bash cURL
+curl -X POST "https://masagua.cooptech.com.ar/api/deleteVar/{id}" \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "influxVar": true
+  }
+}
+```
+
+<Warning>
+Deleting a variable will remove it from all charts, diagrams, and alarms that reference it.
+</Warning>
+
+## InfluxDB Configuration
+
+### Time Units
+
+<ParamField body="calc_unit" type="string">
+  - `ms` - Milliseconds
+  - `s` - Seconds
+  - `m` - Minutes
+  - `h` - Hours
+  - `d` - Days
+  - `mo` - Months
+  - `y` - Years
+</ParamField>
+
+### Period Types
+
+<ParamField body="calc_type_period" type="string">
+  - `last` - Last value in the period (instantaneous)
+  - `mean` - Average value over the period
+</ParamField>
+
+## Example Use Cases
+
+### Simple Flow Meter
+
+```json
+{
+  "name": "Caudal Principal",
+  "unit": "m³/h",
+  "type": "last",
+  "calc": false,
+  "process": "Distribución",
+  "varsInflux": {
+    "Caudal Principal": {
+      "calc_topic": "caudalimetros/principal",
+      "calc_field": "value",
+      "calc_time": 30,
+      "calc_unit": "s",
+      "calc_period": 10,
+      "calc_unit_period": "s",
+      "calc_type_period": "last"
+    }
+  }
+}
+```
+
+### Daily Average Temperature
+
+```json
+{
+  "name": "Temperatura Promedio Diaria",
+  "unit": "°C",
+  "type": "history",
+  "calc": false,
+  "process": "Monitoreo Ambiental",
+  "varsInflux": {
+    "Temperatura Promedio Diaria": {
+      "calc_topic": "sensores/temperatura",
+      "calc_field": "ambiente",
+      "calc_time": 24,
+      "calc_unit": "h",
+      "calc_period": 1,
+      "calc_unit_period": "h",
+      "calc_type_period": "mean"
+    }
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Alarms" icon="bell" href="/api/alarms">
+    Configure alarms based on variables
+  </Card>
+  
+  <Card title="Charts" icon="chart-line" href="/api/charts">
+    Visualize variables in charts
+  </Card>
+</CardGroup>

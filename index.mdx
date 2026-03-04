@@ -1,97 +1,223 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Centinela
+description: Water treatment plant monitoring and management system
+mode: custom
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-br from-[#218ecc] via-[#1a7ab8] to-[#136599] dark:from-[#1a7ab8] dark:via-[#136599] dark:to-[#0d4d75] py-20">
+  <div className="absolute inset-0 bg-black/10"></div>
+  <div className="relative max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="text-center">
+      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+        Centinela Documentation
+      </h1>
+      <p className="text-lg sm:text-xl text-white/90 max-w-3xl mx-auto mb-8">
+        Monitor and manage water treatment plants in real-time with powerful visualization tools, customizable dashboards, and intelligent alarm systems.
+      </p>
+      <div className="flex flex-wrap justify-center gap-4">
+        <a
+          href="/quickstart"
+          className="inline-flex items-center px-6 py-3 rounded-lg bg-white text-[#218ecc] font-semibold hover:bg-white/90 transition-colors no-underline"
+        >
+          Get Started
+        </a>
+        <a
+          href="/features/dashboard"
+          className="inline-flex items-center px-6 py-3 rounded-lg border-2 border-white/30 bg-white/10 text-white font-semibold hover:bg-white/20 transition-colors no-underline"
+        >
+          Explore Features
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="mb-16">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+      Quick start
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+      Get up and running with Centinela in minutes
+    </p>
+    
+    <Steps>
+      <Step title="Access the platform">
+        Log in to Centinela using your credentials. External users can access read-only dashboards through shared links.
+        
+        ```bash
+        # Web access
+        https://masagua.cooptech.com.ar
+        
+        # Development environment
+        http://172.26.5.17:32000
+        ```
+      </Step>
+      
+      <Step title="Configure your dashboard">
+        Add charts and visualizations to monitor your plant's key variables in real-time.
+        
+        <Note>
+          You can choose from multiple chart types including line charts, gauges, liquid fill indicators, and boolean state displays.
+        </Note>
+      </Step>
+      
+      <Step title="Set up alarms">
+        Configure threshold-based alarms to receive notifications when variables exceed safe operating ranges.
+      </Step>
+      
+      <Step title="Create custom diagrams">
+        Use the diagram editor to build interactive visualizations of your plant layout with live data overlays.
+      </Step>
+    </Steps>
+  </div>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <div className="mb-16">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+      Core features
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+      Everything you need to monitor and control your water treatment facility
+    </p>
+    
+    <CardGroup cols={2}>
+      <Card
+        title="Real-time dashboard"
+        icon="gauge-high"
+        href="/features/dashboard"
+      >
+        Monitor all plant variables with customizable charts and live data updates
+      </Card>
+      <Card
+        title="Interactive diagrams"
+        icon="diagram-project"
+        href="/features/diagrams"
+      >
+        Create visual plant layouts with drag-and-drop elements and live data
+      </Card>
+      <Card
+        title="Intelligent alarms"
+        icon="bell"
+        href="/features/alarms"
+      >
+        Configure threshold-based alerts with customizable notification rules
+      </Card>
+      <Card
+        title="Data export"
+        icon="file-export"
+        href="/features/charts"
+      >
+        Export historical data to CSV and generate PDF reports
+      </Card>
+      <Card
+        title="Role-based access"
+        icon="users"
+        href="/user-management/roles"
+      >
+        Manage user permissions with granular access control
+      </Card>
+      <Card
+        title="Desktop application"
+        icon="desktop"
+        href="/desktop/overview"
+      >
+        Native desktop app with automatic updates via Tauri framework
+      </Card>
+    </CardGroup>
+  </div>
 
-## Make it yours
+  <div className="mb-16">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+      Chart types
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+      Choose from multiple visualization options for your data
+    </p>
+    
+    <CardGroup cols={3}>
+      <Card
+        title="Line charts"
+        icon="chart-line"
+        href="/components/charts/line-chart"
+      >
+        Time-series data with multiple variables
+      </Card>
+      <Card
+        title="Gauges"
+        icon="gauge"
+        href="/components/charts/gauge"
+      >
+        Speedometer-style indicators for current values
+      </Card>
+      <Card
+        title="Liquid fill"
+        icon="droplet"
+        href="/components/charts/liquid-fill"
+      >
+        Animated tank level indicators
+      </Card>
+      <Card
+        title="Boolean states"
+        icon="toggle-on"
+        href="/components/charts/boolean-chart"
+      >
+        On/off status displays for pumps and valves
+      </Card>
+      <Card
+        title="Pie charts"
+        icon="chart-pie"
+        href="/components/charts/pie-chart"
+      >
+        Distribution and proportion visualization
+      </Card>
+      <Card
+        title="Bar charts"
+        icon="chart-column"
+        href="/components/charts/bar-chart"
+      >
+        Compare multiple values side by side
+      </Card>
+    </CardGroup>
+  </div>
 
-Design a docs site that looks great and empowers your users.
+  <div className="mb-16">
+    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+      Deployment options
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+      Run Centinela on the web or as a desktop application
+    </p>
+    
+    <CardGroup cols={2}>
+      <Card
+        title="Docker deployment"
+        icon="docker"
+        href="/deployment/docker"
+      >
+        Deploy with Docker and nginx for production environments
+      </Card>
+      <Card
+        title="Desktop app"
+        icon="download"
+        href="/desktop/installation"
+      >
+        Install the native desktop application with auto-update support
+      </Card>
+    </CardGroup>
+  </div>
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+  <div className="rounded-2xl border border-gray-200 dark:border-[#27272a] bg-gray-50 dark:bg-[#1a1d27] p-8 text-center">
+    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+      Ready to get started?
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+      Follow our quickstart guide to set up your first dashboard and start monitoring your water treatment plant.
+    </p>
+    <a
+      href="/quickstart"
+      className="inline-flex items-center px-6 py-3 rounded-lg bg-[#218ecc] text-white font-semibold hover:bg-[#1a7ab8] transition-colors no-underline"
+    >
+      View quickstart guide
+    </a>
+  </div>
+</div>

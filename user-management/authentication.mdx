@@ -1,0 +1,311 @@
+---
+title: 'Authentication'
+description: 'Learn how authentication works in the Centinela water treatment monitoring system'
+icon: 'shield-halved'
+---
+
+## Overview
+
+Centinela implements a multi-layered authentication system that integrates with Cooptech's centralized authentication service. The system supports multi-client organizations, JWT-based sessions, and role-based access control.
+
+## Authentication Flow
+
+The authentication process follows these steps:
+
+<Steps>
+  <Step title="User Login">
+    Users enter their email and password at the login screen (`/login`). The system validates credentials against the Cooptech backend.
+    
+    ```javascript
+    // LoginApp/view/index.jsx:58-59
+    const url = backend.Cooptech + '/login'
+    const responseData = await requestLogin(url, 'POST', data)
+    ```
+  </Step>
+
+  <Step title="Client Selection">
+    If the user has access to multiple organizations, they're redirected to select one:
+    
+    ```javascript
+    // LoginApp/view/index.jsx:66-68
+    if (responseData.cliente.length > 1) {
+      navigate('/ListClients')
+    }
+    ```
+  </Step>
+
+  <Step title="Token Generation">
+    After client selection, the system generates a JWT token containing user information and permissions:
+    
+    ```javascript
+    // LoginApp/utils/login.js:18
+    const token = await request(urlToken, 'POST', info)
+    ```
+  </Step>
+
+  <Step title="Session Storage">
+    The JWT token is stored in both localStorage and cookies with expiration handling:
+    
+    ```javascript
+    // LoginApp/view/index.jsx:85-92
+    const decoded = jwtDecode(token.token)
+    const expirationDate = new Date(decoded.exp)
+    await saveData('token', token.token, {
+      expires: expirationDate,
+      secure: false,
+      sameSite: 'Lax',
+    })
+    storage.set('usuario', decoded)
+    ```
+  </Step>
+</Steps>
+
+## User Storage
+
+Centinela uses a simple localStorage wrapper for managing user sessions:
+
+```javascript
+// storage/storage.js:1-18
+export const storage = {
+  get(key) {
+    const val = localStorage.getItem(key)
+    return val ? JSON.parse(val) : null
+  },
+  
+  set(key, val) {
+    localStorage.setItem(key, JSON.stringify(val))
+  },
+  
+  remove(key) {
+    localStorage.removeItem(key)
+  },
+  
+  clear() {
+    localStorage.clear()
+  }
+}
+```
+
+### Stored User Data
+
+The system stores the following user information:
+
+- **usuario**: Decoded JWT containing user profile and permissions
+- **usuarioCooptech**: Cooptech-specific user data including:
+  - `token`: Cooptech authentication token
+  - `id_user`: User ID in Cooptech system
+  - `cliente`: Selected client/organization details
+- **tokenCooptech**: Raw JWT token for API requests
+
+## Route Protection
+
+Routes are protected based on user authentication status and role:
+
+```javascript
+// App.jsx:45-46
+const authUser = storage.get('usuario')
+const isExternalUser = authUser && authUser.profile === 5
+```
+
+### Route Types
+
+<Tabs>
+  <Tab title="Login Routes">
+    Available when user is **not** authenticated:
+    - `/login` - Main login screen
+    - `/ListClients` - Organization selection
+    - `/LoginCooptech/:token` - Token-based authentication
+  </Tab>
+  
+  <Tab title="User Routes">
+    Available for **internal users** (profiles 1-4):
+    - `/home` - Dashboard
+    - `/config/security` - User management
+    - `/chart` - Charts and analytics
+    - `/config/*` - Configuration pages
+    - All system features
+  </Tab>
+  
+  <Tab title="External Routes">
+    Available for **external users** (profile 5):
+    - `/` - Limited dashboard with consumption charts
+    - External users are restricted to read-only views
+  </Tab>
+</Tabs>
+
+<Info>
+  External users (profile 5) have restricted access and are automatically redirected to a limited dashboard. See [External Users](/user-management/external-users) for more details.
+</Info>
+
+## Password Requirements
+
+Passwords must meet the following criteria:
+
+- Minimum 8 characters
+- At least 1 uppercase letter
+- At least 1 special character
+- At least 1 number
+
+```javascript
+// LoginApp/view/index.jsx:154-161
+{
+  required: 'El Campo es requerido',
+  minLength: { value: 8, message: 'Debe tener al menos 8 caracteres' },
+  pattern: {
+    value: /^(?=.*[A-Z]).{8,}$/,
+    message: 'El Formato correcto debe tener al menos 1 Mayuscula, 1 Simbolo especial y 1 Numero',
+  },
+}
+```
+
+## Password Recovery
+
+Users can recover their password through the login screen:
+
+<Steps>
+  <Step title="Request Recovery">
+    Click "Recuperala" on the login screen to enter recovery mode.
+  </Step>
+  
+  <Step title="Enter Email">
+    Provide the email address associated with your account.
+  </Step>
+  
+  <Step title="Receive Email">
+    A recovery email will be sent with instructions to reset your password:
+    
+    ```javascript
+    // LoginApp/view/index.jsx:48-55
+    const url = backend.Cooptech + '/password_recover'
+    await requestLogin(url, 'POST', data)
+    Swal.fire({
+      icon: 'success',
+      title: 'Perfecto!',
+      text: `Se ha enviado un correo a ${data.email}, para restablecer su contraseña`,
+    })
+    ```
+  </Step>
+</Steps>
+
+## Token-Based Authentication
+
+Centinela supports direct token-based authentication for seamless integration:
+
+```javascript
+// LoginApp/view/LoginCooptech.jsx:10-38
+const validateUserCooptech = async () => {
+  const decodedToken = jwtDecode(token)
+  
+  if (decodedToken.cliente) {
+    const cliente = decodedToken.cliente.find((item) => item.selected)
+    storage.set('usuarioCooptech', {
+      cliente: cliente,
+      id_user: decodedToken.user_id_cooptech,
+      token: decodedToken.tokenCooptech,
+    })
+  }
+  
+  const expirationDate = new Date(decodedToken.exp)
+  await saveData('token', token, {
+    expires: expirationDate,
+    secure: import.meta.env.VITE_ENTORNO === 'desarrollo' ? false : true,
+    sameSite: import.meta.env.VITE_ENTORNO === 'desarrollo' ? 'Lax' : 'None',
+  })
+  
+  storage.set('usuario', decodedToken)
+  navigate('/')
+}
+```
+
+<Warning>
+  If token validation fails, the user is automatically logged out and redirected to the login screen. All stored credentials are removed from localStorage and cookies.
+</Warning>
+
+## Multi-Client Support
+
+Users can access multiple organizations through a single account:
+
+```javascript
+// LoginApp/view/ListClient.jsx:27-30
+const url = `${backend.Cooptech}/listClientsxUserxApp?id_user=${usuarioCooptech.id_user}&name_product=${import.meta.env.VITE_APP_NAME}`
+const responseData = await requestAuth(url, 'GET')
+```
+
+When switching organizations:
+
+1. The user selects a client from the dropdown
+2. System fetches the appropriate schema and product information
+3. A new JWT token is generated for the selected organization
+4. User data is updated with the selected client marked as active
+
+<Note>
+  If a user has no access to any organization, they're logged out with an appropriate error message: "No tenes permisos de ingreso a ninguna organizacion"
+</Note>
+
+## Session Validation
+
+On every page load, the system validates the active session:
+
+```javascript
+// LoginApp/view/index.jsx:104-113
+const validateUser = async () => {
+  const cookies = await getData('token')
+  const localStorage = storage.get('usuario')
+  
+  if (cookies && localStorage) {
+    navigate(`/`)
+  } else {
+    // Show login screen
+  }
+}
+```
+
+## Security Best Practices
+
+<Warning>
+  - Never store sensitive credentials in localStorage without encryption
+  - Always validate JWT expiration dates
+  - Clear all session data on logout
+  - Use HTTPS in production environments
+</Warning>
+
+## Common Issues
+
+### User Doesn't Exist
+
+If a user successfully authenticates with Cooptech but has no clients assigned:
+
+```javascript
+// LoginApp/view/index.jsx:70-74
+if (responseData.cliente.length === 0) {
+  throw new Error('El usuario no existe...')
+}
+```
+
+### Token Errors
+
+If token generation fails:
+
+```javascript
+// LoginApp/view/index.jsx:76-84
+if (token.error) {
+  Swal.fire('Atencion', token.error.message || token.error, 'error')
+  await removeData('token')
+  storage.remove('usuario')
+  storage.remove('usuarioCooptech')
+  storage.remove('tokenCooptech')
+  return false
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="User Roles" icon="users" href="/user-management/roles">
+    Learn about role-based access control and permissions
+  </Card>
+  
+  <Card title="External Users" icon="user-lock" href="/user-management/external-users">
+    Understand how external user access works
+  </Card>
+</CardGroup>

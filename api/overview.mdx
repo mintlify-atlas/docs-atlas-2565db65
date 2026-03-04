@@ -1,0 +1,149 @@
+---
+title: 'API Overview'
+description: 'Introduction to the Centinela Water Treatment Monitoring System API'
+---
+
+## Introduction
+
+The Centinela API provides programmatic access to the water treatment monitoring system. It enables you to manage variables, alarms, charts, diagrams, and user configurations for your water treatment facilities.
+
+## Base URL
+
+The API base URL depends on your environment:
+
+<CodeGroup>
+```bash Local
+http://localhost:4000/api
+```
+
+```bash Development
+http://172.26.5.17:32001/api
+```
+
+```bash Production
+https://masagua.cooptech.com.ar/api
+```
+</CodeGroup>
+
+## API Architecture
+
+The Centinela API follows RESTful principles and uses:
+
+- **JSON** for request and response payloads
+- **Bearer token** authentication
+- **Standard HTTP methods** (GET, POST, PUT, DELETE)
+- **HTTP status codes** for response indication
+
+## Common Response Formats
+
+### Success Response
+
+```json
+{
+  "data": {
+    // Response data here
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": {
+    "message": "Error description"
+  }
+}
+```
+
+## HTTP Status Codes
+
+The API uses standard HTTP status codes:
+
+| Status Code | Description |
+|-------------|-------------|
+| `200` | Success - Request completed successfully |
+| `201` | Created - Resource created successfully |
+| `400` | Bad Request - Invalid request parameters |
+| `401` | Unauthorized - Invalid or missing authentication |
+| `403` | Forbidden - Insufficient permissions |
+| `404` | Not Found - Resource not found |
+| `500` | Internal Server Error - Server-side error |
+
+## Rate Limiting
+
+Currently, the API does not enforce rate limiting. However, it's recommended to implement reasonable polling intervals:
+
+- **Real-time data**: Poll every 30 seconds
+- **Configuration data**: Cache and refresh as needed
+- **Bulk operations**: Process in batches
+
+## Data Polling
+
+For real-time monitoring data, the system uses periodic polling:
+
+```javascript
+// Example: Poll multiple influx variables every 30 seconds
+setInterval(async () => {
+  const response = await fetch(`${baseUrl}/multipleDataInflux`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(variables)
+  });
+  const data = await response.json();
+}, 30000);
+```
+
+## Client Libraries
+
+The Centinela frontend uses Axios for HTTP requests. Here's the base request configuration:
+
+```javascript
+const request = async (url, method, data = false) => {
+  const response = await axios({
+    method,
+    url,
+    data: data || {},
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer ' + token
+    }
+  });
+  return response;
+};
+```
+
+## InfluxDB Integration
+
+Centinela integrates with InfluxDB for time-series data storage. Variables are configured with:
+
+- **Topic**: MQTT topic or data source
+- **Field**: Specific field within the topic
+- **Time period**: Query time range (ms, s, m, h, d, mo, y)
+- **Sample period**: Aggregation interval
+- **Period type**: `last` (instant) or `mean` (average)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn how to authenticate API requests
+  </Card>
+  
+  <Card title="Variables" icon="code" href="/api/variables">
+    Manage monitoring variables
+  </Card>
+  
+  <Card title="Alarms" icon="bell" href="/api/alarms">
+    Configure and manage alarms
+  </Card>
+  
+  <Card title="Charts" icon="chart-line" href="/api/charts">
+    Create and manage visualizations
+  </Card>
+</CardGroup>
