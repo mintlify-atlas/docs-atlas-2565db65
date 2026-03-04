@@ -1,0 +1,139 @@
+{
+  "projectType": "saas",
+  "projectName": "Centinela",
+  "projectDescription": "Water treatment plant monitoring and management system for real-time control and visualization",
+  "theme": "aspen",
+  "primaryColor": "#218ecc",
+  "lightColor": "#ebf7f8",
+  "darkColor": "#7c98b0",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/dashboard",
+              "features/charts",
+              "features/diagrams",
+              "features/alarms",
+              "features/real-time-monitoring"
+            ]
+          },
+          {
+            "group": "User Management",
+            "pages": [
+              "user-management/authentication",
+              "user-management/roles",
+              "user-management/external-users"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/charts",
+              "configuration/variables",
+              "configuration/alarms",
+              "configuration/diagrams",
+              "configuration/menu"
+            ]
+          },
+          {
+            "group": "Desktop Application",
+            "pages": [
+              "desktop/overview",
+              "desktop/installation",
+              "desktop/updates"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/docker",
+              "deployment/environment-variables",
+              "deployment/nginx"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Components",
+        "groups": [
+          {
+            "group": "Chart Types",
+            "pages": [
+              "components/charts/line-chart",
+              "components/charts/bar-chart",
+              "components/charts/boolean-chart",
+              "components/charts/pie-chart",
+              "components/charts/gauge",
+              "components/charts/liquid-fill"
+            ]
+          },
+          {
+            "group": "UI Components",
+            "pages": [
+              "components/ui/buttons",
+              "components/ui/cards",
+              "components/ui/tables",
+              "components/ui/inputs"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/charts",
+              "api/diagrams",
+              "api/alarms",
+              "api/variables",
+              "api/users"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Real-time monitoring of water treatment plant variables",
+    "Customizable dashboard with multiple chart types",
+    "Interactive diagram editor for plant visualization",
+    "Alarm system with configurable thresholds",
+    "Multi-user support with role-based access control",
+    "Desktop and web application support via Tauri",
+    "Data export to CSV and PDF formats",
+    "Integration with InfluxDB for time-series data"
+  ],
+  "publicApiSurface": [
+    "Dashboard with customizable charts",
+    "Chart configuration (Line, Bar, Boolean, Pie, Gauge, Liquid Fill)",
+    "Diagram drawing and visualization",
+    "Alarm configuration and monitoring",
+    "Variable management and configuration",
+    "User authentication and profile management",
+    "External user access",
+    "Real-time data updates",
+    "Report generation and export",
+    "Desktop application with auto-updates"
+  ]
+}
